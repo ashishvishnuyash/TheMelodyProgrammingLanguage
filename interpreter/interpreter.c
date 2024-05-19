@@ -68,6 +68,29 @@ double interpret(ASTNode* node) {
             }
         }
 
+        case AST_COMPARISON: {
+            double left_value = interpret(node->data.comparison.left);
+            double right_value = interpret(node->data.comparison.right);
+
+            switch (node->data.comparison.op) {
+                case EQUAL:
+                    return left_value == right_value;
+                case NOT_EQUAL:
+                    return left_value != right_value;
+                case GREATER:
+                    return left_value > right_value;
+                case LESS:
+                    return left_value < right_value;
+                case GREATER_EQUAL:
+                    return left_value >= right_value;
+                case LESS_EQUAL:
+                    return left_value <= right_value;
+                default:
+                    fprintf(stderr, "Error: Unknown comparison operator\n");
+                    exit(1);
+            }
+        }
+
         default:
             fprintf(stderr, "Error: Unknown AST node type\n");
             exit(1);

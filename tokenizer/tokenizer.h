@@ -13,9 +13,15 @@ typedef enum {
     FLOOR_DIVISION,
     LPAREN,
     RPAREN,
-    TOKEN_EOF,
     INCREMENT,
     DECREMENT,
+    TOKEN_EOF,
+    EQUAL,
+    NOT_EQUAL,
+    GREATER,
+    LESS,
+    GREATER_EQUAL,
+    LESS_EQUAL,
 } TokenType;
 
 // Token structure
