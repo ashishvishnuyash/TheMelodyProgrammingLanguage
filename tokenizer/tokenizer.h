@@ -8,9 +8,14 @@ typedef enum {
     MINUS,
     MULTIPLY,
     DIVIDE,
+    MODULUS,
+    EXPONENTIATION,
+    FLOOR_DIVISION,
     LPAREN,
     RPAREN,
     TOKEN_EOF,
+    INCREMENT,
+    DECREMENT,
 } TokenType;
 
 // Token structure

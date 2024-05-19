@@ -8,7 +8,7 @@ void print_ast(ASTNode* node) {
         return;
     }
     if (node->type == AST_NUMBER) {
-        printf("%d", node->data.number);
+        printf("%lf", node->data.number);
     } else if (node->type == AST_BINARY_OP) {
         printf("(");
         print_ast(node->data.binary_op.left);
@@ -17,10 +17,22 @@ void print_ast(ASTNode* node) {
             case MINUS: printf(" - "); break;
             case MULTIPLY: printf(" * "); break;
             case DIVIDE: printf(" / "); break;
+            case MODULUS: printf(" %% "); break;
+            case EXPONENTIATION: printf(" ** "); break;
+            case FLOOR_DIVISION: printf(" // "); break;
             default: printf(" ? "); break;
         }
         print_ast(node->data.binary_op.right);
         printf(")");
+    } else if (node->type == AST_UNARY_OP) {
+        switch (node->data.unary_op.op) {
+            case PLUS: printf("+"); break;
+            case MINUS: printf("-"); break;
+            case INCREMENT: printf("++"); break;
+            case DECREMENT: printf("--"); break;
+            default: printf("?"); break;
+        }
+        print_ast(node->data.unary_op.operand);
     }
 }
 int main(int argc, char const *argv[])
@@ -40,8 +52,8 @@ int main(int argc, char const *argv[])
    }
    Token* token_ptr = tokens;
    ASTNode* ast = parse_expression(&token_ptr);
-    int show =interpret(ast);
-    printf("Interpreted result: %d\n", show);
+    double show =interpret(ast);
+    printf("Interpreted result:%lf \n", show);
    
     if (ast != NULL) {
         printf("Parsed AST: ");

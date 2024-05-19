@@ -43,15 +43,36 @@ Token* tokenize(const char* input) {
         // print input
 
         if (input[i]=='+'){
+            if (input[i+1]=='+'){
+                tokens[token_count].type = INCREMENT;
+                tokens[token_count].value = (char*)malloc(2);
+                tokens[token_count].value[0] = input[i];
+                tokens[token_count].value[1] = input[i+1];
+                tokens[token_count].value[2] = '\0';
+                token_count++;
+                i+=2;
+                continue;
+            } else{
             tokens[token_count].type = PLUS;
             tokens[token_count].value = (char*)malloc(2);
             tokens[token_count].value[0] = input[i];
             tokens[token_count].value[1] = '\0';
             token_count++;
             i++;
-            continue;
+            continue;}
         }
         if (input[i]=='-'){
+            if (input[i+1]=='-'){
+                tokens[token_count].type = DECREMENT;
+                tokens[token_count].value = (char*)malloc(2);
+                tokens[token_count].value[0] = input[i];
+                tokens[token_count].value[1] = input[i+1];
+                tokens[token_count].value[2] = '\0';
+                token_count++;
+                i+=2;
+                continue;
+            } else{
+
             tokens[token_count].type = MINUS;
             tokens[token_count].value = (char*)malloc(2);
             tokens[token_count].value[0] = input[i];
@@ -59,8 +80,19 @@ Token* tokenize(const char* input) {
             token_count++;
             i++;
             continue;
+            }
         }
         if (input[i]=='*'){
+            if (input[i+1]=='*'){
+                tokens[token_count].type = EXPONENTIATION;
+                tokens[token_count].value = (char*)malloc(2);
+                tokens[token_count].value[0] = input[i];
+                tokens[token_count].value[1] = input[i+1];
+                tokens[token_count].value[2] = '\0';
+                token_count++;
+                i+=2;
+                continue;
+            } else{
             tokens[token_count].type = MULTIPLY;
             tokens[token_count].value = (char*)malloc(2);
             tokens[token_count].value[0] = input[i];
@@ -68,8 +100,19 @@ Token* tokenize(const char* input) {
             token_count++;
             i++;
             continue;
+            }
         }
         if (input[i]=='/'){
+            if (input[i+1]=='/'){
+                tokens[token_count].type = FLOOR_DIVISION;
+                tokens[token_count].value = (char*)malloc(2);
+                tokens[token_count].value[0] = input[i];
+                tokens[token_count].value[1] = input[i+1];
+                tokens[token_count].value[2] = '\0';
+                token_count++;
+                i+=2;
+                continue;
+            } else{
             tokens[token_count].type = DIVIDE;
             tokens[token_count].value = (char*)malloc(2);
             tokens[token_count].value[0] = input[i];
@@ -77,9 +120,19 @@ Token* tokenize(const char* input) {
             token_count++;
             i++;
             continue;
+            }
         }
         if (input[i] == '(') {
             tokens[token_count].type = LPAREN;
+            tokens[token_count].value = (char*)malloc(2);
+            tokens[token_count].value[0] = input[i];
+            tokens[token_count].value[1] = '\0';
+            token_count++;
+            i++;
+            continue;
+        }
+        if (input[i]=='%'){
+            tokens[token_count].type = MODULUS;
             tokens[token_count].value = (char*)malloc(2);
             tokens[token_count].value[0] = input[i];
             tokens[token_count].value[1] = '\0';
@@ -97,16 +150,21 @@ Token* tokenize(const char* input) {
             continue;
         }
 
-        if (isdigit(input[i])) {
+        if (isdigit(input[i]) || (input[i] == '.' && isdigit(input[i+1]))) {
             int start = i;
             while (isdigit(input[i])) {
                 i++;
             }
-            int length = i - start;
+            if (input[i] == '.') {
+                i++;
+                while (isdigit(input[i])) {
+                    i++;
+                }
+            }
+            int len = i - start;
             tokens[token_count].type = NUMBER;
-            tokens[token_count].value = strndup(input + start, length);
+            tokens[token_count].value = strndup(input + start, len);
             token_count++;
-            
             continue;
         }
 

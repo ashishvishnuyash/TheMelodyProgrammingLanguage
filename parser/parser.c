@@ -8,7 +8,7 @@ ASTNode* parse_term(Token** tokens);
 ASTNode* parse_expression(Token** tokens);
 
 // Helper function to create a number node
-ASTNode* create_number_node(int value) {
+ASTNode* create_number_node(double value) {
     ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
     if (node == NULL) {
         fprintf(stderr, "Error: Memory allocation failed\n");
@@ -33,11 +33,24 @@ ASTNode* create_binary_op_node(ASTNode* left, TokenType op, ASTNode* right) {
     return node;
 }
 
+// Helper function to create a unary operation node
+ASTNode* create_unary_op_node(TokenType op, ASTNode* operand) {
+    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    if (node == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return NULL;
+    }
+    node->type = AST_UNARY_OP;
+    node->data.unary_op.op = op;
+    node->data.unary_op.operand = operand;
+    return node;
+}
+
 // Parse primary expressions (numbers and parenthesized expressions)
 ASTNode* parse_primary(Token** tokens) {
     Token* token = *tokens;
     if (token->type == NUMBER) {
-        int value = atoi(token->value);
+        double value = atof(token->value);
         *tokens += 1; // Advance to next token
         return create_number_node(value);
     } else if (token->type == LPAREN) {
@@ -51,37 +64,51 @@ ASTNode* parse_primary(Token** tokens) {
             free_ast(expr);
             return NULL;
         }
+    } else if (token->type == MINUS || token->type == PLUS || token->type == INCREMENT || token->type == DECREMENT) {
+        TokenType op = token->type;
+        *tokens += 1; // Consume unary operator
+        ASTNode* operand = parse_primary(tokens);
+        return create_unary_op_node(op, operand);
     } else {
         fprintf(stderr, "Error: Unexpected token '%s'\n", token->value);
         return NULL;
     }
 }
 
-// Parse multiplication and division
-ASTNode* parse_term(Token** tokens) {
+// Parse exponentiation (right-associative)
+ASTNode* parse_exponentiation(Token** tokens) {
     ASTNode* node = parse_primary(tokens);
-    while ((*tokens)->type == MULTIPLY || (*tokens)->type == DIVIDE) {
+    while ((*tokens)->type == EXPONENTIATION) {
         TokenType op = (*tokens)->type;
-        *tokens += 1; // Consume operator
-        ASTNode* right = parse_primary(tokens);
-        node = create_binary_op_node(node, op, right);
+        *tokens += 1; // Consume '**'
+        node = create_binary_op_node(node, op, parse_primary(tokens));
     }
     return node;
 }
 
-// Parse addition and subtraction
+// Parse terms (multiplication, division, modulus, floor division)
+ASTNode* parse_term(Token** tokens) {
+    ASTNode* node = parse_exponentiation(tokens);
+    while ((*tokens)->type == MULTIPLY || (*tokens)->type == DIVIDE || (*tokens)->type == MODULUS || (*tokens)->type == FLOOR_DIVISION) {
+        TokenType op = (*tokens)->type;
+        *tokens += 1; // Consume operator
+        node = create_binary_op_node(node, op, parse_exponentiation(tokens));
+    }
+    return node;
+}
+
+// Parse expressions (addition and subtraction)
 ASTNode* parse_expression(Token** tokens) {
     ASTNode* node = parse_term(tokens);
     while ((*tokens)->type == PLUS || (*tokens)->type == MINUS) {
         TokenType op = (*tokens)->type;
         *tokens += 1; // Consume operator
-        ASTNode* right = parse_term(tokens);
-        node = create_binary_op_node(node, op, right);
+        node = create_binary_op_node(node, op, parse_term(tokens));
     }
     return node;
 }
 
-// Free memory allocated for an AST
+// Function to free memory allocated for an AST
 void free_ast(ASTNode* node) {
     if (node == NULL) {
         return;
@@ -89,6 +116,8 @@ void free_ast(ASTNode* node) {
     if (node->type == AST_BINARY_OP) {
         free_ast(node->data.binary_op.left);
         free_ast(node->data.binary_op.right);
+    } else if (node->type == AST_UNARY_OP) {
+        free_ast(node->data.unary_op.operand);
     }
     free(node);
 }

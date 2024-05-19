@@ -6,7 +6,8 @@
 // AST node types
 typedef enum {
     AST_NUMBER,
-    AST_BINARY_OP
+    AST_BINARY_OP,
+    AST_UNARY_OP
 } ASTNodeType;
 
 // AST node structure
@@ -18,7 +19,11 @@ typedef struct ASTNode {
             TokenType op;
             struct ASTNode* right;
         } binary_op;
-        int number;
+        struct {
+            TokenType op;
+            struct ASTNode* operand;
+        } unary_op;
+        double number;
     } data;
 } ASTNode;
 
