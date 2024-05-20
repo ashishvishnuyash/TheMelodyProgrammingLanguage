@@ -3,18 +3,22 @@
 
 #include "..\tokenizer\tokenizer.h"
 
+
+
 // AST node types
 typedef enum {
     AST_NUMBER,
     AST_BINARY_OP,
     AST_UNARY_OP,
-    AST_COMPARISON
+    AST_COMPARISON,
+    AST_LOGICAL_OP,
 } ASTNodeType;
 
 // AST node structure
 typedef struct ASTNode {
     ASTNodeType type;
     union {
+        double number;
         struct {
             struct ASTNode* left;
             TokenType op;
@@ -29,7 +33,11 @@ typedef struct ASTNode {
             TokenType op;
             struct ASTNode* right;
         } comparison;
-        double number;
+        struct {
+            struct ASTNode* left;
+            TokenType op;
+            struct ASTNode* right;
+        } logical_op;
     } data;
 } ASTNode;
 

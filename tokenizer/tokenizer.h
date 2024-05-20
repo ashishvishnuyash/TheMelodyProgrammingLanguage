@@ -22,6 +22,9 @@ typedef enum {
     LESS,
     GREATER_EQUAL,
     LESS_EQUAL,
+    LOGICAL_AND,
+    LOGICAL_OR,
+    LOGICAL_NOT,
 } TokenType;
 
 // Token structure

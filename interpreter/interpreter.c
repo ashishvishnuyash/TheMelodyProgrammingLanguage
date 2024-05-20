@@ -62,6 +62,8 @@ double interpret(ASTNode* node) {
                     return operand_value + 1;
                 case DECREMENT:
                     return operand_value - 1;
+                case LOGICAL_NOT:
+                    return !operand_value;
                 default:
                     fprintf(stderr, "Error: Unknown unary operator\n");
                     exit(1);
@@ -88,6 +90,15 @@ double interpret(ASTNode* node) {
                 default:
                     fprintf(stderr, "Error: Unknown comparison operator\n");
                     exit(1);
+            }
+        }
+        case AST_LOGICAL_OP: {
+            double left = interpret(node->data.logical_op.left);
+            double right = interpret(node->data.logical_op.right);
+            switch (node->data.logical_op.op) {
+                case LOGICAL_AND: return left && right;
+                case LOGICAL_OR: return left || right;
+                default: fprintf(stderr, "Error: Unknown logical operator\n"); exit(EXIT_FAILURE);
             }
         }
 

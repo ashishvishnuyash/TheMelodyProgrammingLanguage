@@ -134,7 +134,8 @@ Token* tokenize(const char* input) {
                     tokens[token_count].value = strndup(input + i, 2);
                     i += 2;
                 } else {
-                    fprintf(stderr, "Error: Unknown token '%c'\n", input[i]);
+                    tokens[token_count].type = LOGICAL_NOT;
+                    tokens[token_count].value = strndup(input + i, 1);
                     i++;
                 }
                 break;
@@ -160,18 +161,37 @@ Token* tokenize(const char* input) {
                     i++;
                 }
                 break;
+            case '&':
+                if (input[i + 1] == '&') {
+                    tokens[token_count].type = LOGICAL_AND;
+                    tokens[token_count].value = strndup(input + i, 2);
+                    i += 2;
+                } else {
+                    fprintf(stderr, "Error: Unknown token '%c'\n", input[i]);
+                    i++;
+                }
+                break;
+            case '|':
+                if (input[i + 1] == '|') {
+                    tokens[token_count].type = LOGICAL_OR;
+                    tokens[token_count].value = strndup(input + i, 2);
+                    i += 2;
+                } else {
+                    fprintf(stderr, "Error: Unknown token '%c'\n", input[i]);
+                    i++;
+                }
+                break;
             default:
-                fprintf(stderr, "Unknown token: %c\n", input[i]);
+                fprintf(stderr, "Error: Unknown token '%c'\n", input[i]);
                 i++;
-                continue;
+                break;
         }
         token_count++;
     }
 
-    // Add EOF token
+    // Mark the end of tokens
     tokens[token_count].type = TOKEN_EOF;
     tokens[token_count].value = NULL;
-    token_count++;
 
     return tokens;
 }
