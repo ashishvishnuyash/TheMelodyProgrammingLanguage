@@ -3,6 +3,14 @@
 
 #include "..\parser\parser.h"
 
+typedef struct {
+    char* name;
+    void* value;
+    struct Variable* next;
+} Variable;
+
+extern Variable* variables;
+
 // Function to interpret an AST and return the result
 double interpret(ASTNode* node);
 
