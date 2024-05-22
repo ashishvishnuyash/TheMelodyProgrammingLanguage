@@ -12,6 +12,7 @@ typedef enum {
     AST_UNARY_OP,
     AST_COMPARISON,
     AST_LOGICAL_OP,
+    AST_ASSIGNMENT,
 } ASTNodeType;
 
 // AST node structure
@@ -38,6 +39,8 @@ typedef struct ASTNode {
             TokenType op;
             struct ASTNode* right;
         } logical_op;
+        // assignment, variable, function call, etc.
+     
     } data;
 } ASTNode;
 

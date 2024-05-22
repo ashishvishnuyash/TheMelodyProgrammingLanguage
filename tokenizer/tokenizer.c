@@ -56,6 +56,18 @@ Token* tokenize(const char* input) {
             token_count++;
             continue;
         }
+        // Handle variables
+        if (isalpha(input[i]) || input[i] == '_') {
+            int start = i;
+            while (isalnum(input[i]) || input[i] == '_') {
+                i++;
+            }
+            int len = i - start;
+            tokens[token_count].type = VAR;
+            tokens[token_count].value = strndup(input + start, len);
+            token_count++;
+            continue;
+        }
 
         // Handle operators and parentheses
         switch (input[i]) {
@@ -124,7 +136,8 @@ Token* tokenize(const char* input) {
                     tokens[token_count].value = strndup(input + i, 2);
                     i += 2;
                 } else {
-                    fprintf(stderr, "Error: Unknown token '%c'\n", input[i]);
+                    tokens[token_count].type = ASSIGN;
+                    tokens[token_count].value = strndup(input + i, 1);
                     i++;
                 }
                 break;
@@ -144,7 +157,12 @@ Token* tokenize(const char* input) {
                     tokens[token_count].type = GREATER_EQUAL;
                     tokens[token_count].value = strndup(input + i, 2);
                     i += 2;
-                } else {
+                } else if (input[i + 1] == '>') {
+                    tokens[token_count].type = SHIFT_RIGHT;
+                    tokens[token_count].value = strndup(input + i, 2);
+                    i += 2;
+                }
+                else {
                     tokens[token_count].type = GREATER;
                     tokens[token_count].value = strndup(input + i, 1);
                     i++;
@@ -154,8 +172,14 @@ Token* tokenize(const char* input) {
                 if (input[i + 1] == '=') {
                     tokens[token_count].type = LESS_EQUAL;
                     tokens[token_count].value = strndup(input + i, 2);
+                    i += 2;            
+                }
+                else if (input[i + 1] == '<') {
+                    tokens[token_count].type = SHIFT_LEFT;
+                    tokens[token_count].value = strndup(input + i, 2);
                     i += 2;
-                } else {
+                }
+                else {
                     tokens[token_count].type = LESS;
                     tokens[token_count].value = strndup(input + i, 1);
                     i++;
@@ -167,7 +191,8 @@ Token* tokenize(const char* input) {
                     tokens[token_count].value = strndup(input + i, 2);
                     i += 2;
                 } else {
-                    fprintf(stderr, "Error: Unknown token '%c'\n", input[i]);
+                    tokens[token_count].type = BITWISE_AND;
+                    tokens[token_count].value = strndup(input + i, 1);
                     i++;
                 }
                 break;
@@ -177,9 +202,20 @@ Token* tokenize(const char* input) {
                     tokens[token_count].value = strndup(input + i, 2);
                     i += 2;
                 } else {
-                    fprintf(stderr, "Error: Unknown token '%c'\n", input[i]);
+                    tokens[token_count].type = BITWISE_OR;
+                    tokens[token_count].value = strndup(input + i, 1);
                     i++;
                 }
+                break;
+            case '^':
+                tokens[token_count].type = BITWISE_XOR;
+                tokens[token_count].value = strndup(input + i, 1);
+                i++;
+                break;
+            case '~':
+                tokens[token_count].type = BITWISE_NOT;
+                tokens[token_count].value = strndup(input + i, 1);
+                i++;
                 break;
             default:
                 fprintf(stderr, "Error: Unknown token '%c'\n", input[i]);

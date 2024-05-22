@@ -64,6 +64,8 @@ double interpret(ASTNode* node) {
                     return operand_value - 1;
                 case LOGICAL_NOT:
                     return !operand_value;
+                case BITWISE_NOT:
+                    return ~(int)operand_value;
                 default:
                     fprintf(stderr, "Error: Unknown unary operator\n");
                     exit(1);
@@ -98,6 +100,12 @@ double interpret(ASTNode* node) {
             switch (node->data.logical_op.op) {
                 case LOGICAL_AND: return left && right;
                 case LOGICAL_OR: return left || right;
+                case BITWISE_AND: return (int)left & (int)right;
+                case BITWISE_OR: return (int)left | (int)right;
+                case BITWISE_XOR: return (int)left ^ (int)right;
+                case SHIFT_LEFT: return (int)left << (int)right;
+                case SHIFT_RIGHT: return (int)left >> (int)right;
+
                 default: fprintf(stderr, "Error: Unknown logical operator\n"); exit(EXIT_FAILURE);
             }
         }

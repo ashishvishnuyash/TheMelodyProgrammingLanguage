@@ -85,7 +85,7 @@ ASTNode* parse_primary(Token** tokens) {
         }
         *tokens += 1; // Consume ')'
         return node;
-    } else if (token->type == PLUS || token->type == MINUS || token->type == INCREMENT || token->type == DECREMENT || token->type == LOGICAL_NOT) {
+    } else if (token->type == PLUS || token->type == MINUS || token->type == INCREMENT || token->type == DECREMENT || token->type == LOGICAL_NOT || token->type == BITWISE_NOT) {
         TokenType op = token->type;
         *tokens += 1; // Consume the unary operator
         return create_unary_op_node(op, parse_primary(tokens));
@@ -132,7 +132,7 @@ ASTNode* parse_comparison(Token** tokens) {
 ASTNode* parse_logical(Token** tokens) {
     ASTNode* left = parse_comparison(tokens);
 
-    while ((*tokens)->type == LOGICAL_AND || (*tokens)->type == LOGICAL_OR) {
+    while ((*tokens)->type == LOGICAL_AND || (*tokens)->type == LOGICAL_OR || (*tokens)->type == BITWISE_AND || (*tokens)->type == BITWISE_OR || (*tokens)->type == BITWISE_XOR || (*tokens)->type == SHIFT_LEFT || (*tokens)->type == SHIFT_RIGHT) {
         Token* token = *tokens;
         (*tokens)++;
         ASTNode* right = parse_comparison(tokens);
@@ -141,6 +141,7 @@ ASTNode* parse_logical(Token** tokens) {
 
     return left;
 }
+
 
 // Parse expressions (addition and subtraction)
 ASTNode* parse_expression(Token** tokens) {
