@@ -19,6 +19,19 @@ ASTNode* create_number_node(double value) {
     node->data.number = value;
     return node;
 }
+// Helper function to create variable node
+ASTNode* create_identifier_node(char* identifier) {
+    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    if (node == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return NULL;
+    }
+    node->type = AST_IDENTIFIER;
+    node->data.identifier = identifier;
+    return node;
+}
+
+
 
 // Helper function to create a binary operation node
 ASTNode* create_binary_op_node(ASTNode* left, TokenType op, ASTNode* right) {
@@ -39,6 +52,19 @@ ASTNode* create_logical_op_node(ASTNode* left, TokenType op, ASTNode* right) {
     node->data.logical_op.left = left;
     node->data.logical_op.op = op;
     node->data.logical_op.right = right;
+    return node;
+}
+// Helper function to create a assignment node
+ASTNode* create_assignment_node(ASTNode* left, TokenType op, ASTNode* right) {
+    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    if (node == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return NULL;
+    }
+    node->type = AST_ASSIGNMENT;
+    node->data.assignment_op.left = left;
+    node->data.assignment_op.op = op;
+    node->data.assignment_op.right = right;
     return node;
 }
 // Helper function to create a unary operation node
@@ -90,6 +116,12 @@ ASTNode* parse_primary(Token** tokens) {
         *tokens += 1; // Consume the unary operator
         return create_unary_op_node(op, parse_primary(tokens));
     }
+    else  if (token->type == VAR) {
+        *tokens += 1; // Consume the variable
+        return create_identifier_node(token->value);
+    }
+    
+   
 
     fprintf(stderr, "Error: Unexpected token '%s'\n", token->value);
     exit(1);
@@ -128,9 +160,21 @@ ASTNode* parse_comparison(Token** tokens) {
     }
     return node;
 }
+// Function to parse identifier
+ASTNode* parse_identifier(Token** tokens) {
+    ASTNode* node = parse_comparison(tokens);
+    while((*tokens)->type == ASSIGN) {
+        Token* token = *tokens;
+        (*tokens)++;
+        ASTNode* right = parse_expression(tokens);
+        node = create_assignment_node(node, token->type, right);
+    }
+    return node;
+    
+}
 // Function to parse a logical expression
 ASTNode* parse_logical(Token** tokens) {
-    ASTNode* left = parse_comparison(tokens);
+    ASTNode* left = parse_identifier(tokens);
 
     while ((*tokens)->type == LOGICAL_AND || (*tokens)->type == LOGICAL_OR || (*tokens)->type == BITWISE_AND || (*tokens)->type == BITWISE_OR || (*tokens)->type == BITWISE_XOR || (*tokens)->type == SHIFT_LEFT || (*tokens)->type == SHIFT_RIGHT) {
         Token* token = *tokens;

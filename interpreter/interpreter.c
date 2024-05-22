@@ -109,7 +109,7 @@ double interpret(ASTNode* node) {
                 default: fprintf(stderr, "Error: Unknown logical operator\n"); exit(EXIT_FAILURE);
             }
         }
-
+       
         default:
             fprintf(stderr, "Error: Unknown AST node type\n");
             exit(1);

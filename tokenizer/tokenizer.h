@@ -32,7 +32,12 @@ typedef enum {
     SHIFT_LEFT,        // <<
     SHIFT_RIGHT,
     VAR,
-    ASSIGN,  
+    ASSIGN,
+    PLUS_ASSIGN,       // +=
+    MINUS_ASSIGN,      // -=
+    MULTIPLY_ASSIGN,   // *=
+    DIVIDE_ASSIGN,     // /=
+    MODULUS_ASSIGN     // %=  
 } TokenType;
 
 // Token structure
