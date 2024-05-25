@@ -3,35 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-void set_variable(const char* name, void* value) {
-    Variable* var = variables;
-    while (var) {
-        if (strcmp(var->name, name) == 0) {
-            var->value = value;
-            return;
-        }
-        var = var->next;
-    }
-    Variable* new_var = (Variable*)malloc(sizeof(Variable));
-    new_var->name = strdup(name);
-    new_var->value = value;
-    new_var->next = variables;
-    variables = new_var;
-}
 
-void* get_variable(const char* name) {
-    Variable* var = variables;
-    while (var) {
-        if (strcmp(var->name, name) == 0) {
-            return var->value;
-        }
-        var = var->next;
-    }
-    fprintf(stderr, "Error: Variable '%s' not found\n", name);
-    exit(EXIT_FAILURE);
-}
 
-Variable* variables = NULL;
 double interpret(ASTNode* node) {
     if (node == NULL) {
         fprintf(stderr, "Error: NULL node in AST\n");
@@ -41,14 +14,8 @@ double interpret(ASTNode* node) {
     switch (node->type) {
         case AST_NUMBER:
             return node->data.number;
-        case AST_IDENTIFIER:{
-            char* name = node->data.identifier;
-            double* value = get_variable(name);
-            if (value == NULL) {
-                fprintf(stderr, "Error: Undefined variable '%s'\n", name);}
-        }
-
-
+        
+       
         case AST_BINARY_OP: {
             double left_value = interpret(node->data.binary_op.left);
             double right_value = interpret(node->data.binary_op.right);
@@ -145,16 +112,12 @@ double interpret(ASTNode* node) {
                 default: fprintf(stderr, "Error: Unknown logical operator\n"); exit(EXIT_FAILURE);
             }
         }
-        case AST_ASSIGNMENT: {
-            double value = interpret(node->data.assignment_op.right);
-            switch (node->data.assignment_op.op) {
-                case ASSIGN: return value;
-        //         case ADD_ASSIGN: return value + node->data.assignment.variable->data.number;
-        //         case SUBTRACT_ASSIGN:
-        }}
+       
+    
+            
        
         default:
-            fprintf(stderr, "Error: Unknown AST node type\n");
+            fprintf(stderr, "Error: Unknown AST node type\n " );
             exit(1);
     }
 }

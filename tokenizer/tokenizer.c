@@ -44,7 +44,7 @@ Token* tokenize(const char* input) {
             while (isdigit(input[i])) {
                 i++;
             }
-            if (input[i] == '.') {
+            if (input[i] == '.') {  
                 i++;
                 while (isdigit(input[i])) {
                     i++;
@@ -63,7 +63,7 @@ Token* tokenize(const char* input) {
                 i++;
             }
             int len = i - start;
-            tokens[token_count].type = VAR;
+            tokens[token_count].type = IDENTIFIER;
             tokens[token_count].value = strndup(input + start, len);
             token_count++;
             continue;

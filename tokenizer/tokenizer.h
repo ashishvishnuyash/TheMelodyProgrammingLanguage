@@ -4,6 +4,14 @@
 // Token types
 typedef enum {
     NUMBER,
+    FLOAT,
+    COMPLEX,
+    STRING,
+    BOOLEAN,
+    LIST,
+    TUPLE,
+    DICT,
+    SET,
     PLUS,
     MINUS,
     MULTIPLY,
@@ -31,7 +39,7 @@ typedef enum {
     BITWISE_NOT, 
     SHIFT_LEFT,        // <<
     SHIFT_RIGHT,
-    VAR,
+    IDENTIFIER,
     ASSIGN,
     PLUS_ASSIGN,       // +=
     MINUS_ASSIGN,      // -=
