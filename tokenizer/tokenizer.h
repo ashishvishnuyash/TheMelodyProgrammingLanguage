@@ -40,9 +40,9 @@ typedef enum {
     SHIFT_LEFT,        // <<
     SHIFT_RIGHT,
     IDENTIFIER,
-    ASSIGN,
     PLUS_ASSIGN,       // +=
     MINUS_ASSIGN,      // -=
+    ASSIGN,
     MULTIPLY_ASSIGN,   // *=
     DIVIDE_ASSIGN,     // /=
     MODULUS_ASSIGN     // %=  

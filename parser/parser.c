@@ -15,6 +15,7 @@ ASTNode* create_number_node(double value) {
         fprintf(stderr, "Error: Memory allocation failed\n");
         return NULL;
     }
+    // printf("Creating number node with value %d\n", value);
     node->type = AST_NUMBER;
     node->data.number = value;
     return node;
@@ -27,7 +28,7 @@ ASTNode* create_identifier_node(char* name) {
         return NULL;
     }
     node->type = AST_IDENTIFIER;
-    node->data.identifier = name;
+    node->data.identifier = strndup(name, strlen(name));
     return node;
 }
 
@@ -118,6 +119,7 @@ ASTNode* parse_primary(Token** tokens) {
     }
     else if (token->type == IDENTIFIER) {
         *tokens += 1; // Consume the identifier
+        printf("Identifier: %d\n", (*tokens)->type);
         return create_identifier_node(token->value);
     }
     
@@ -179,6 +181,8 @@ ASTNode* parse_logical(Token** tokens) {
 //create_assignment_node(left, op, right)
 ASTNode* parse_assignment(Token** tokens) {
     ASTNode* left = parse_logical(tokens);
+    // printf("left is .%c\n", left->data);
+//    printf("left is %d\n", (*tokens)->type);
    
     while ((*tokens)->type == ASSIGN)
     {

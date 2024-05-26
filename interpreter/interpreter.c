@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-
+Variable *variables = NULL;
 
 double interpret(ASTNode* node) {
     if (node == NULL) {
@@ -14,6 +14,11 @@ double interpret(ASTNode* node) {
     switch (node->type) {
         case AST_NUMBER:
             return node->data.number;
+
+        case AST_IDENTIFIER: {
+        printf("hello");
+            
+        }
         
        
         case AST_BINARY_OP: {
@@ -112,12 +117,26 @@ double interpret(ASTNode* node) {
                 default: fprintf(stderr, "Error: Unknown logical operator\n"); exit(EXIT_FAILURE);
             }
         }
-       
+        case AST_ASSIGNMENT: {
+            Variable* variables = (Variable*)malloc(sizeof(Variable));
+            switch (node->data.assignment_op.op) {
+                case ASSIGN:
+                    variables->value = interpret(node->data.assignment_op.right);
+                    variables->name = node->data.assignment_op.left;
+                    
+                    
+                
+            }
+        }
+            
+            
+            
+           
     
             
        
         default:
-            fprintf(stderr, "Error: Unknown AST node type\n " );
+            fprintf(stderr, "Error: Unknown AST node type v %d\n ", node->type);
             exit(1);
     }
 }

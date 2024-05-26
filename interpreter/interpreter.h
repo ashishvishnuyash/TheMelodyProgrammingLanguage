@@ -5,7 +5,7 @@
 
 typedef struct {
     char* name;
-    void* value;
+    double* value;
     struct Variable* next;
 } Variable;
 
