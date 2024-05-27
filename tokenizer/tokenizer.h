@@ -4,6 +4,7 @@
 // Token types
 typedef enum {
     NUMBER,
+    CHAR,
     FLOAT,
     COMPLEX,
     STRING,
@@ -45,7 +46,17 @@ typedef enum {
     ASSIGN,
     MULTIPLY_ASSIGN,   // *=
     DIVIDE_ASSIGN,     // /=
-    MODULUS_ASSIGN     // %=  
+    MODULUS_ASSIGN ,    // %=  
+    LBRACKET,
+    RBRACKET,
+    LBRACE,
+    RBRACE,
+    COLON,
+    SEMICOLON,
+    COMMA,
+    DOT,
+    QUESTION_MARK,
+    ARROW,
 } TokenType;
 
 // Token structure

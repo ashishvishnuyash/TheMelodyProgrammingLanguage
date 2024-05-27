@@ -8,6 +8,10 @@
 // AST node types
 typedef enum {
     AST_NUMBER,
+    AST_FLOAT,
+    AST_COMPLEX,
+    AST_STRING,
+    AST_BOOLEAN,
     AST_BINARY_OP,
     AST_UNARY_OP,
     AST_COMPARISON,
@@ -16,10 +20,20 @@ typedef enum {
     AST_ASSIGNMENT,
 } ASTNodeType;
 
+
 // AST node structure
 typedef struct ASTNode {
     ASTNodeType type;
     union {
+        int int_value;
+        double float_value;
+        struct { double real; double imag; } complex_value;
+        char* string_value;
+        int bool_value;
+        struct ASTNode** list_value;
+        struct ASTNode** tuple_value;
+        struct { struct ASTNode** keys; struct ASTNode** values; } dict_value;
+        struct ASTNode** set_value;
         double number;
         struct {
             struct ASTNode* left;
@@ -54,7 +68,7 @@ typedef struct ASTNode {
 } ASTNode;
 
 // Function to parse an expression and create an AST
-ASTNode* parse_expression(Token** tokens);
+ASTNode* parse(const char* input);
 
 // Function to free memory allocated for an AST
 void free_ast(ASTNode* node);
