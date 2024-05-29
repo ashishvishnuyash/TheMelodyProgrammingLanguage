@@ -3,53 +3,41 @@
 #include ".\tokenizer\tokenizer.c"
 #include ".\parser\parser.c"
 #include ".\interpreter\interpreter.c"
-void print_ast(ASTNode* node) {
-    if (!node) return;
-
-    switch (node->type) {
-        case AST_NUMBER:
-            printf("Number: %d\n", node->data.number);
-            break;
-        case AST_FLOAT:
-            printf("Float: %f\n", node->data.float_value);
-            break;
-        case AST_STRING:
-            printf("String: %s\n", node->data.string_value);
-            break;
-        case AST_BOOLEAN:
-            printf("Boolean: %d\n", node->data.bool_value);
-            break;
-        case AST_BINARY_OP:
-            printf("Binary Operation: %d\n", node->data.binary_op.op);
-            print_ast(node->data.binary_op.left);
-            print_ast(node->data.binary_op.right);
-            break;
-        case AST_UNARY_OP:
-            printf("Unary Operation: %d\n", node->data.unary_op.op);
-            print_ast(node->data.unary_op.operand);
-            break;
-        case AST_IDENTIFIER:
-            printf("Variable: %s\n", node->data.identifier);
-            break;
-        case AST_ASSIGNMENT:
-            printf("Assignment: %s = \n", node->data.assignment_op.left);
-            print_ast(node->data.assignment_op.right);
-            break;
-        case AST_COMPARISON:
-            printf("Comparison: %d\n", node->data.comparison.op);
-            print_ast(node->data.comparison.left);
-            print_ast(node->data.comparison.right);
-            break;
-        case AST_LOGICAL_OP:
-            printf("Logical Operation: %d\n", node->data.logical_op.op);
-            print_ast(node->data.logical_op.left);
-            print_ast(node->data.logical_op.right);
-            break;
-        default:
-            printf("Unknown AST node type: %d\n", node->type);
-            break;
-    }
-}
+// void print_ast(ASTNode* node) {
+//     if (node == NULL) {
+//         return;
+//     }
+//     if (node->type == AST_NUMBER) {
+//         printf("%f", node->data.number);
+//     } else if (node->type == AST_BINARY_OP) {
+//         printf("(");
+//         print_ast(node->data.binary_op.left);
+//         switch (node->data.binary_op.op) {
+//             case PLUS: printf(" + "); break;
+//             case MINUS: printf(" - "); break;
+//             case MULTIPLY: printf(" * "); break;
+//             case DIVIDE: printf(" / "); break;
+//             default: printf(" ? "); break;
+//         }
+//         print_ast(node->data.binary_op.right);
+//         printf(")");
+//     } else if (node->type == AST_UNARY_OP) {
+//         printf("(");
+//         switch (node->data.unary_op.op) {
+//             case PLUS: printf("+"); break;
+//             case MINUS: printf("-"); break;
+//             default: printf("?"); break;
+//         }
+//         print_ast(node->data.unary_op.operand);
+//         printf(")");
+//     } else if (node->type == AST_IDENTIFIER) {
+//         printf("%s", node->data.identifier);
+//     } else if (node->type == AST_ASSIGNMENT) {
+//         print_ast(node->data.assignment_op.left);
+//         printf(" = " );
+//         print_ast(node->data.assignment_op.right);
+//     } 
+// }
 int main(int argc, char const *argv[])
 {
     if (argc != 2) {
@@ -60,27 +48,32 @@ int main(int argc, char const *argv[])
     if (content == NULL) {
         return 1;
     }
-//     Token* tokens = tokenize(content);
-//    if (tokens == NULL) {
-//     printf("Error: Failed to tokenize input.\n");
-//     return 1;
-//    }
-    ASTNode* ast = parse(content);
-    if (!ast) {
-        fprintf(stderr, "Error: Failed to parse input\n");
-        return EXIT_FAILURE;
+    Token* tokens = tokenize(content);
+   if (tokens == NULL) {
+    printf("Error: Failed to tokenize input.\n");
+    return 1;
+   }
+   Token* token_ptr = tokens;
+   ASTNode* ast = parse_expression(&token_ptr);
+    // double show =interpret(ast);
+    // printf("Interpreted result: %f\n", show);
+   
+    void* result = interpret(ast);
+
+    int value = *((int*)result);
+
+    printf("Value: %d\n", value);
+
+   // Print the tokens
+   for (int i = 0; tokens[i].type != TOKEN_EOF; i++) {
+    printf("Token type: %d, Value: %s\n", tokens[i].type, tokens[i].value);
     }
-
-    print_ast(ast);
-
-    // void* result = evaluate_ast(ast);
-    // if (result) {
-    //     printf("Result: %d\n", *((int*)result));
-    //     free(result);
-    // }
-
-    free_ast(ast);
-    free_variables();
-
-    return EXIT_SUCCESS;
+    free_tokens(tokens);
+    // Print the tokens
+    // printf("%s",content);
+    free_file_content(content);
+    // print token
+   
+    
+    return 0;
 }

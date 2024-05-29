@@ -34,12 +34,14 @@ typedef enum {
     LOGICAL_AND,
     LOGICAL_OR,
     LOGICAL_NOT,
+    
     BITWISE_AND,       // &
     BITWISE_OR,        // |
     BITWISE_XOR,       // ^
     BITWISE_NOT, 
     SHIFT_LEFT,        // <<
     SHIFT_RIGHT,
+    
     IDENTIFIER,
     PLUS_ASSIGN,       // +=
     MINUS_ASSIGN,      // -=
