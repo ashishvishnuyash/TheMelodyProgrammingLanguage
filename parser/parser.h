@@ -8,6 +8,7 @@
 // AST node types
 typedef enum {
     AST_NUMBER,
+    AST_FLOAT,
     AST_BINARY_OP,
     AST_UNARY_OP,
     AST_COMPARISON,
@@ -21,6 +22,7 @@ typedef struct ASTNode {
     ASTNodeType type;
     union {
         int number;
+        double float_number;
         struct {
             struct ASTNode* left;
             TokenType op;

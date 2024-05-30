@@ -9,7 +9,7 @@ ASTNode* parse_expression(Token** tokens);
 ASTNode* parse_comparison(Token** tokens);
 
 // Helper function to create a number node
-ASTNode* create_number_node(double value) {
+ASTNode* create_number_node(int value) {
     ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
     if (node == NULL) {
         fprintf(stderr, "Error: Memory allocation failed\n");
@@ -18,6 +18,18 @@ ASTNode* create_number_node(double value) {
     // printf("Creating number node with value %d\n", value);
     node->type = AST_NUMBER;
     node->data.number = value;
+    return node;
+}
+
+ASTNode* create_float_node(double value) {
+    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    if (node == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return NULL;
+    }
+    // printf("Creating number node with value %d\n", value);
+    node->type = AST_FLOAT;
+    node->data.float_number = value;
     return node;
 }
 // Helper function to create identifier node
@@ -100,10 +112,18 @@ ASTNode* parse_primary(Token** tokens) {
     Token* token = *tokens;
 
     if (token->type == NUMBER) {
-        double value = strtod(token->value, NULL);
+        int value = strtod(token->value, NULL);
         *tokens += 1; // Consume the number
         return create_number_node(value);
-    } else if (token->type == LPAREN) {
+    }
+    else if (token->type == FLOAT) {
+        double value = strtod(token->value, NULL);
+        *tokens += 1; // Consume the number
+        return create_float_node(value);
+    }
+        
+    
+    else if (token->type == LPAREN) {
         *tokens += 1; // Consume '('
         ASTNode* node = parse_expression(tokens);
         if ((*tokens)->type != RPAREN) {
@@ -119,7 +139,7 @@ ASTNode* parse_primary(Token** tokens) {
     }
     else if (token->type == IDENTIFIER) {
         *tokens += 1; // Consume the identifier
-        printf("Identifier: %d\n", (*tokens)->type);
+        
         return create_identifier_node(token->value);
     }
     
@@ -181,8 +201,7 @@ ASTNode* parse_logical(Token** tokens) {
 //create_assignment_node(left, op, right)
 ASTNode* parse_assignment(Token** tokens) {
     ASTNode* left = parse_logical(tokens);
-    // printf("left is .%c\n", left->data);
-//    printf("left is %d\n", (*tokens)->type);
+
    
     while ((*tokens)->type == ASSIGN)
     {

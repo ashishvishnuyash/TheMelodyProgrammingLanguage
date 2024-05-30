@@ -3,13 +3,15 @@
 
 #include "..\parser\parser.h"
 
-typedef struct {
-    char* name;
-    double* value;
-    struct Variable* next;
+// Define the Variable struct and use typedef for convenience
+typedef struct Variable {
+    char *name;
+    void *value;
+    struct Variable *next;  // Use 'struct Variable' here
 } Variable;
 
-extern Variable* variables;
+// Declare the head of the linked list
+
 
 // Function to interpret an AST and return the result
 void* interpret(ASTNode* node);
