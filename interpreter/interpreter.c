@@ -5,8 +5,25 @@
 
 Variable *variables = NULL;
 
-void* set_variable(const char* name, void* value) {
+char* concat(const char *s1, const char *s2)
+{
+    const size_t len1 = strlen(s1);
+    const size_t len2 = strlen(s2);
+    char *result = malloc(len1 + len2 + 1); // +1 for the null-terminator
+    // in real code you would check for errors in malloc here
+    memcpy(result, s1, len1);
+    memcpy(result + len1, s2, len2 + 1); // +1 to copy the null-terminator
+    return result;
+}
+
+//return data type of the value if integer, ot
+//return 0 if float
+
+Literal* set_variable(const char* name, Literal* value) {
+    
     Variable* var = variables;
+    
+    // printf("set_variable: %s\n", name);
     while (var) {
         if (strcmp(var->name, name) == 0) {
             var->value = value;
@@ -19,15 +36,19 @@ void* set_variable(const char* name, void* value) {
     new_var->value = value;
     new_var->next = variables;  // Correctly use new_var->next
     variables = new_var;
+    // printf(">>%s",variables->name);
+    // printf("<<%d",*((int*)value->value));
     return value;
 }
 
 
 
-void* get_variable(const char* name) {
+Literal* get_variable(const char* name) {
     Variable* var = variables;
     while (var) {
         if (strcmp(var->name, name) == 0) {
+            // return var->value;
+            // printf("get_variable: %s\n", name);
             return var->value;
         }
         var = var->next;
@@ -38,200 +59,349 @@ void* get_variable(const char* name) {
 
 
 
-static void* evaluate_literal(ASTNode* node) {
+ Literal* evaluate_literal(ASTNode* node) {
     void* value = NULL;
     switch (node->type) {
         case AST_NUMBER: {
             value = malloc(sizeof(int));
            *((int*)value) =node->data.number;
+           Literal* literal = (Literal*)malloc(sizeof(Literal));
+           literal->type = TYPE_INT;
+           literal->value = value;
+           return literal;
             
-            break;
+            // break;
         }
         case AST_FLOAT: {
             value = malloc(sizeof(double));
             *((double*)value) =node->data.float_number;
-            break;
+            Literal* literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_FLOAT;
+            literal->value = value;
+            return literal;
+            // break;
+        }
+        case AST_STRING: {
+            value = malloc(sizeof(char*));
+            *((char**)value) = strdup(node->data.string);
+            Literal* literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_STRING;
+            literal->value = value;
+            return literal;
         }
         
         
        
         default:
-            fprintf(stderr, "Error: Unknown AST node type v %d\n ", node->type);
+            fprintf(stderr, "Error: Unknown AST node type  %d\n ", node->type);
             exit(1);
     }
-    return value;
+    // return value;
 }
 
-static void* evaluate_binary_op(ASTNode* node) {
+Literal* evaluate_binary_op(ASTNode* node) {
     void* value = NULL;
-    void* left = interpret(node->data.binary_op.left);
-    void* right = interpret(node->data.binary_op.right);
-    
+    Literal* left = interpret(node->data.binary_op.left);
+    Literal* right = interpret(node->data.binary_op.right);
+        
     switch (node->data.binary_op.op){
-        case PLUS:
-            if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
-            value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)left) + *((int*)right));
-            return value;
+        case PLUS:{
+            
+                       
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
+                value = malloc(sizeof(int));
+                *((int*)value) = (*((int*)left->value) + *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+                // return value;
                 
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((double*)value) = (*((double*)left) + *((double*)right));
-                return value;
+                *((double*)value) = (*((double*)left->value) + *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_FLOAT;
+                literal->value = value;
+                return literal;
+                
+            }else if(left->type==TYPE_STRING && right->type== TYPE_STRING){
+                value = malloc(sizeof(char*));
+                *((char**)value) = concat(*((char**)left->value),*((char**)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_STRING;
+                literal->value = value;
+                return literal;
+            }
             }
             
             
         case MINUS:
-             if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+             if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (*((int*)left) - *((int*)right));
-                return value;
+                *((int*)value) = (*((int*)left->value) - *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
                 
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+                
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((double*)value) = (*((double*)left) - *((double*)right));
-                return value;
+                *((double*)value) = (*((double*)left->value) - *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_FLOAT;
+                literal->value = value;
+                return literal;
+
             }
         case MULTIPLY:
-             if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+             if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (*((int*)left) * *((int*)right));
-                return value;
+                *((int*)value) = (*((int*)left->value) * *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
                 
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((double*)value) = (*((double*)left) * *((double*)right));
-                return value;
+                *((double*)value) = (*((double*)left->value) * *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_FLOAT;
+                literal->value = value;
+                return literal;
+                
             }
         case DIVIDE:
-             if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+             if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (*((int*)left) / *((int*)right));
-                return value;
+                *((int*)value) = (*((int*)left->value) / *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
                 
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((double*)value) = (*((double*)left) / *((double*)right));
-                return value;
+                *((double*)value) = (*((double*)left->value) / *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_FLOAT;
+                literal->value = value;
+                return literal;
             }
         case EXPONENTIATION:
-            if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (int)pow(*((int*)left),*((int*)right));
-                return value;
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+                *((int*)value) = (int)pow(*((int*)left->value),*((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((double*)value) = (double)pow(*((double*)left), *((double*)right));
-                return value;
+                *((double*)value) = (double)pow(*((double*)left->value), *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_FLOAT;
+                literal->value = value;
+                return literal;
             }
             
         case MODULUS:
-            if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (*((int*)left) % *((int*)right));
-                return value;
+                *((int*)value) = (*((int*)left->value) % *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
             }
         case FLOOR_DIVISION:
-             if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+             if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (int)floor(*((int*)left) / *((int*)right));
-                return value;
-             }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+                *((int*)value) = (int)floor(*((int*)left->value) / *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+
+             }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((double*)value) = (double)floor(*((double*)left) / *((double*)right));
-                return value;
+                *((double*)value) = (double)floor(*((double*)left->value) / *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_FLOAT;
+                literal->value = value;
+                return literal;
              }
         case EQUAL:
-            if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (*((int*)left) == *((int*)right));
-                return value;
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+                *((int*)value) = (*((int*)left->value) == *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((int*)value) = (*((double*)left) == *((double*)right));
-                return value;
+                *((int*)value) = (*((double*)left->value) == *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
             }
         case NOT_EQUAL:
-            if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (*((int*)left) != *((int*)right));
-                return value;
-            } else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+                *((int*)value) = (*((int*)left->value) != *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            } else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((int*)value) = (*((double*)left) != *((double*)right));
-                return value;
+                *((int*)value) = (*((double*)left->value) != *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
             }
         case LESS:
-            if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (*((int*)left) < *((int*)right));
-                return value;
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+                *((int*)value) = (*((int*)left->value) < *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((int*)value) = (*((double*)left) < *((double*)right));
-                return value;
+                *((int*)value) = (*((double*)left->value) < *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
             }
         case GREATER:
-            if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (*((int*)left) > *((int*)right));
-                return value;
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+                *((int*)value) = (*((int*)left->value) > *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((int*)value) = (*((double*)left) > *((double*)right));
-                return value;
+                *((int*)value) = (*((double*)left->value) > *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
             }
         case LESS_EQUAL:
-            if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
-                *((int*)value) = (*((int*)left) <= *((int*)right));
-                return value;
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+                *((int*)value) = (*((int*)left->value) <= *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((int*)value) = (*((double*)left) <= *((double*)right));
-                return value;
+                *((int*)value) = (*((double*)left->value) <= *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
             }
             
         case GREATER_EQUAL:
-            if (node->data.binary_op.left->type == AST_NUMBER && node->data.binary_op.right->type == AST_NUMBER){
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
                 value = malloc(sizeof(int));
                 *((int*)value) = (*((int*)left) >= *((int*)right));
-                return value;
-            }else if (node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_FLOAT || node->data.binary_op.left->type == AST_FLOAT && node->data.binary_op.right->type == AST_NUMBER || node->data.binary_op.left->type == AST_NUMBER  && node->data.binary_op.right->type == AST_FLOAT){
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
-                *((int*)value) = (*((double*)left) >= *((double*)right));
-                return value;
+                *((int*)value) = (*((double*)left->value) >= *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+                
             }
             
         case LOGICAL_AND:
-            value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)left) && *((int*)right));
-            return value;
+            if (left->type == TYPE_INT && right->type == TYPE_INT)
+            {
+                value = malloc(sizeof(int));
+                *((int*)value) = (*((int*)left->value) && *((int*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }
+            
+            
+            
         case LOGICAL_OR:
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
             value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)left) || *((int*)right));
-            return value;
+            *((int*)value) = (*((int*)left->value) || *((int*)right->value));
+            Literal *literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_INT;
+            literal->value = value;
+            return literal;
+            }
         case BITWISE_AND:
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
             value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)left) & *((int*)right));
-            return value;
+            *((int*)value) = (*((int*)left->value) & *((int*)right->value));
+            Literal *literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_INT;
+            literal->value = value;
+            return literal;
+            }
         case BITWISE_OR:
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
             value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)left) | *((int*)right));
-            return value;
+            *((int*)value) = (*((int*)left->value) | *((int*)right->value));
+            Literal *literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_INT;
+            literal->value = value;
+            return literal;
+            }
         case BITWISE_XOR:
+            if (left->type == TYPE_INT && right->type == TYPE_INT){
             value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)left) ^ *((int*)right));
-            return value;
+            *((int*)value) = (*((int*)left->value) ^ *((int*)right->value));
+            Literal *literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_INT;
+            literal->value = value;
+            return literal;
+            }
         case SHIFT_LEFT:
+            if(left->type == TYPE_INT && right->type == TYPE_INT){
             value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)left) << *((int*)right));
-            return value;
+            *((int*)value) = (*((int*)left->value) << *((int*)right->value));
+            
+            Literal *literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_INT;
+            literal->value = value;
+            return literal;
+            }
         case SHIFT_RIGHT:
+            if(left->type == TYPE_INT && right->type == TYPE_INT){
             value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)left) >> *((int*)right));
-            return value;
-            default:
+            *((int*)value) = (*((int*)left->value) >> *((int*)right->value));
+            Literal *literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_INT;
+            literal->value = value;
+            return literal;
+            }
+        default:
             fprintf(stderr, "Error: Unknown AST node type gv %d\n ", node->type);
             exit(1);
     }
@@ -241,33 +411,76 @@ static void* evaluate_binary_op(ASTNode* node) {
       
 
 
-void* evaluate_unary_op(ASTNode* node) {
+Literal* evaluate_unary_op(ASTNode* node) {
     void* value = NULL;
+    Literal* operand = interpret(node->data.unary_op.operand);
 
 
     switch (node->data.unary_op.op){
         case MINUS:
+            if (operand->type == TYPE_INT){
+
             value = malloc(sizeof(int));
-            *((int*)value) = -(*((int*)interpret(node->data.unary_op.operand)));
-            return value;
+            *((int*)value) = -(*((int*)operand->type));
+            Literal *literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_INT;
+            literal->value = value;
+            return literal;
+            }
         case PLUS:
+            if (operand->type == TYPE_INT){
+
             value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)interpret(node->data.unary_op.operand)));
-            return value;
+            *((int*)value) = (*((int*)operand->type));
+            Literal *literal = (Literal*)malloc(sizeof(Literal));
+            literal->type = TYPE_INT;
+            literal->value = value;
+            return literal;
+            }
         case INCREMENT:
-            value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)interpret(node->data.unary_op.operand)))+1;
-            return value;
+            if (operand->type==TYPE_INT){
+                printf("Incrementing%d\n", *((int*)operand->value)+1);
+
+                value = malloc(sizeof(int));
+                *((int*)value) = (*((int*)operand->value))+1;
+                printf("Incremented to %d\n", *((int*)value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }
+            // return value;
         case DECREMENT:
-            value = malloc(sizeof(int));
-            *((int*)value) = (*((int*)interpret(node->data.unary_op.operand)))-1;
-            return value;
+            if(operand->type==TYPE_INT){
+
+            
+                value = malloc(sizeof(int));
+                *((int*)value) = (*((int*)operand->value))-1;
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+                }
         case LOGICAL_NOT:
-            value = malloc(sizeof(int));
-            *((int*)value) = !(*((int*)interpret(node->data.unary_op.operand)));
+            if(operand->type==TYPE_INT){
+                value = malloc(sizeof(int));
+                *((int*)value) = !(*((int*)operand->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }
+            
         case BITWISE_NOT:
-            value = malloc(sizeof(int));
-            *((int*)value) = ~(*((int*)interpret(node->data.unary_op.operand)));
+            if(operand->type==TYPE_INT){
+                value = malloc(sizeof(int));
+                *((int*)value) = ~(*((int*)operand->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }
+             
         
         default:
             fprintf(stderr, "Error: Unknown AST node type v %d\n ", node->type);
@@ -275,10 +488,74 @@ void* evaluate_unary_op(ASTNode* node) {
     }
 }
 
+Literal* evaluate_assignment(ASTNode* node) {
+    void* value = NULL;
+    char* left = node->data.assignment_op.left->data.identifier;
+    Literal* right = interpret(node->data.assignment_op.right);
+    // printf("Left: %s\n", left);
+    // printf("Right: %d\n", *((int*)right->value));
+    // if (left == NULL) {
+    //     fprintf(stderr, "Error: Left hand side of assignment is not a variable\n");
+    //     exit(1);
+    // }
+    // printf("Left: %d\n", *((int*)left->value));
+    switch (node->data.assignment_op.op) {
+        case ASSIGN:
+            // printf("Left: %s\n", left);
+            // printf("Right: %d\n", *((int*)right->value));
+            
+            set_variable(left, right);
+
+            return right;
+        case PLUS_ASSIGN:{
+            printf("Left++: %s\n", left);
+                Literal *left_literal = get_variable(left);
+                if(left_literal->type == TYPE_INT && right->type == TYPE_INT){
+                    // printf("Left:++++ %s\n", *((char**)left_literal->value));
+                    value = malloc(sizeof(int));
+                    *((int*)value) = (*((int*)left_literal->value)) + (*((int*)right->value));
+                    Literal *literal = (Literal*)malloc(sizeof(Literal));
+                    literal->type = TYPE_INT;
+                    literal->value = value;               
+
+                    set_variable(left, literal);
+                    return literal;
+                }
+                else if(left_literal->type == TYPE_STRING && right->type == TYPE_STRING){
+                    // printf("+++%s\n",*((char**)left_literal->value));
+                    printf("%s\n",*((char**)right->value));
+                    
+                    value = malloc(sizeof(char*));
+                    *((char**)value) = concat(*((char**)left_literal->value),*((char**)right->value));
+                    Literal *literal = (Literal*)malloc(sizeof(Literal));
+                    literal->type = TYPE_STRING;
+                    literal->value = value;
+                    set_variable(left, literal);
+                    // return literal;
+                    return literal;
+                }
+                else if(left_literal->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left_literal->type == TYPE_FLOAT && right->type == TYPE_INT || left_literal->type == TYPE_INT && right->type == TYPE_FLOAT){
+                    value = malloc(sizeof(float));
+                    *((float*)value) = (*((float*)left_literal->value)) + (*((float*)right->value));
+                    set_variable(left, value);
+                    return value;
+                }
+                else{
+                    fprintf(stderr, "Error: Invalid types for + assignment\n");
+                    exit(1);
+                }}
+                
+
+            
+        default:
+            fprintf(stderr, "Error: Unknown AST node type v %d\n ", node->type);
+            exit(1);
+    }
+}
        
 
 
-void* interpret(ASTNode* node) {
+Literal* interpret(ASTNode* node) {
     if (node == NULL) {
         fprintf(stderr, "Error: NULL node in AST\n");
         exit(1);
@@ -286,22 +563,48 @@ void* interpret(ASTNode* node) {
 
     switch (node->type) {
         case AST_NUMBER:
+        case AST_STRING:
         case AST_FLOAT:
+            printf("Literal\n");
             return evaluate_literal(node);
         
         case AST_BINARY_OP:
+            printf("Binary\n");
             return evaluate_binary_op(node); 
         case AST_UNARY_OP:
             return evaluate_unary_op(node);
         case AST_IDENTIFIER:
-            // return get_variable(node);
-        case AST_ASSIGNMENT:{
-          
-            void* value;
-            value = interpret(node->data.assignment_op.right);
-            set_variable(node->data.assignment_op.left->data.identifier, value);
+            printf("Identifier\n");
+            // return NULL;
+            Literal* value;
+            value=get_variable(node->data.identifier);
+            // printf("%d\n",*((int*)value->value));
             return value;
+        case AST_ASSIGNMENT:{
+            printf("Assignment\n");
+            
+            Literal* value;
+            // value = interpret(node->data.assignment_op.right);
+            // set_variable(node->data.assignment_op.left->data.identifier, value);
+            value=evaluate_assignment(node);
+            // printf("%d\n",*((int*)value->value));
+            // printf("%s\n",*((char**)value->value));
+
+            return value;
+            // return NULL;
         }
+        case AST_STATEMENT_LIST:
+            printf("Statement List\n");
+            for (int i = 0; i < node->data.statement_list.statement_count; i++) {
+                Literal* res;
+                res = interpret(node->data.statement_list.statements[i]);
+                // printf("%s\n",*((char**)res->value));
+                // return res;
+                printf("%d\n",*((int*)res->value));
+                
+            }            
+            return NULL;
+
         // case AST_COMPARISON:
         //     return evaluate_comparison(node);
        

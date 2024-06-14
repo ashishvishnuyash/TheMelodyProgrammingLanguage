@@ -7,8 +7,11 @@ ASTNode* parse_primary(Token** tokens);
 ASTNode* parse_term(Token** tokens);
 ASTNode* parse_expression(Token** tokens);
 ASTNode* parse_comparison(Token** tokens);
+ASTNode* parse_program(Token** tokens) ;
+ASTNode* parse_statememt_list(Token** tokens) ;
 
-// Helper function to create a number node
+
+
 ASTNode* create_number_node(int value) {
     ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
     if (node == NULL) {
@@ -18,6 +21,18 @@ ASTNode* create_number_node(int value) {
     // printf("Creating number node with value %d\n", value);
     node->type = AST_NUMBER;
     node->data.number = value;
+    return node;
+}
+// Helper function to create a string node
+ASTNode* create_string_node(char* value) {
+    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    if (node == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return NULL;
+    }
+    // printf("Creating number node with value %d\n", value);
+    node->type = AST_STRING;
+    node->data.string = strndup(value, strlen(value));
     return node;
 }
 
@@ -121,7 +136,11 @@ ASTNode* parse_primary(Token** tokens) {
         *tokens += 1; // Consume the number
         return create_float_node(value);
     }
-        
+    else if (token->type == STRING) {
+        char* value = token->value;
+        *tokens += 1; // Consume the string
+        return create_string_node(value);
+    }
     
     else if (token->type == LPAREN) {
         *tokens += 1; // Consume '('
@@ -145,7 +164,7 @@ ASTNode* parse_primary(Token** tokens) {
     
    
 
-    fprintf(stderr, "Error: Unexpected tokenc '%s'\n", token->value);
+    fprintf(stderr, "Error: Unexpected token '%s'\n", token->value);
     exit(0);
 }
 
@@ -198,17 +217,24 @@ ASTNode* parse_logical(Token** tokens) {
     return left;
 }
 
+
+
 //create_assignment_node(left, op, right)
 ASTNode* parse_assignment(Token** tokens) {
     ASTNode* left = parse_logical(tokens);
 
-   
-    while ((*tokens)->type == ASSIGN)
+//    (*tokens)->type == ADD_ASSIGN || (*tokens)->type == SUBTRACT_ASSIGN || (*tokens)->type == MULTIPLY_ASSIGN || (*tokens)->type == DIVIDE_ASSIGN || (*tokens)->type == MODULUS_ASSIGN || (*tokens)->type == BITWISE_AND_ASSIGN || (*tokens)->type == BITWISE_OR_ASSIGN || (*tokens)->type == BITWISE_XOR_ASSIGN || (*tokens)->type == SHIFT_LEFT_ASSIGN || (*tokens)->type == SHIFT_RIGHT_ASSIGN
+    while ((*tokens)->type == ASSIGN || ((*tokens)->type == PLUS_ASSIGN || (*tokens)->type == MINUS_ASSIGN || (*tokens)->type == MULTIPLY_ASSIGN || (*tokens)->type == DIVIDE_ASSIGN || (*tokens)->type == MODULUS_ASSIGN ))
     {
+        
+        
+        
         Token* token = *tokens;
         (*tokens)++;
         ASTNode* right = parse_expression(tokens);
+        printf("left: %s, right: %d\n", left->data.identifier, right->data.number);
         left = create_assignment_node(left, token->type, right);
+        return left;
         
     }
     return left;
@@ -226,6 +252,46 @@ ASTNode* parse_expression(Token** tokens) {
     }
     return node;
 }
+
+
+
+ASTNode* parse_statement(Token** tokens) {
+    ASTNode* node = parse_expression(tokens);
+    if ((*tokens)->type == SEMICOLON) {
+        *tokens += 1; // Consume ';'
+        
+        
+    }
+    return node;
+}
+
+ASTNode* parse_statememt_list(Token** tokens) {
+    // size_t length = strlen(tokens);
+     ASTNode** statements = (ASTNode**)malloc(sizeof(ASTNode*) * 100);
+    // ASTNode* node = parse_statement(tokens);
+    
+    int count =0;
+        while ((*tokens)->type != TOKEN_EOF) {
+        statements[count++] = parse_statement(tokens);    
+
+    }
+    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    if (node == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return NULL;
+    }
+    node->type = AST_STATEMENT_LIST;
+    node->data.statement_list.statements = statements;
+    node->data.statement_list.statement_count = count;
+    return node;
+
+}
+
+ASTNode* parse_program(Token** tokens) {
+    ASTNode* node = parse_statememt_list(tokens);
+    return node;
+}
+
 
 // Function to free memory allocated for an AST
 void free_ast(ASTNode* node) {

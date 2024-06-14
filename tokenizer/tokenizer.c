@@ -294,6 +294,11 @@ Token* tokenize(const char* input) {
                 tokens[token_count].value = strndup(input + i, 1);
                 i++;
                 break;
+            case ';':
+                tokens[token_count].type = SEMICOLON;
+                tokens[token_count].value = strndup(input + i, 1);
+                i++;
+                break;
             default:
                 fprintf(stderr, "Error: Unrecognized character '%c'\n", input[i]);
                 free_tokens(tokens);

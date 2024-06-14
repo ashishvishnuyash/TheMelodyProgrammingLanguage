@@ -9,12 +9,15 @@
 typedef enum {
     AST_NUMBER,
     AST_FLOAT,
+    AST_STRING,
     AST_BINARY_OP,
     AST_UNARY_OP,
     AST_COMPARISON,
     AST_LOGICAL_OP,
     AST_IDENTIFIER,
     AST_ASSIGNMENT,
+    AST_STATEMENT_LIST,
+    AST_FUNCTION_DEF,
 } ASTNodeType;
 
 // AST node structure
@@ -23,6 +26,7 @@ typedef struct ASTNode {
     union {
         int number;
         double float_number;
+        char* string;
         struct {
             struct ASTNode* left;
             TokenType op;
@@ -42,6 +46,12 @@ typedef struct ASTNode {
             TokenType op;
             struct ASTNode* right;
         } assignment_op;
+        
+        struct {
+            struct ASTNode** statements;
+            int statement_count;
+            
+        } statement_list;
      
     } data;
 } ASTNode;

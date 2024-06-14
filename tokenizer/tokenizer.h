@@ -55,7 +55,12 @@ typedef enum {
     RBRACE,
     COLON,
     SEMICOLON,
+    DEF,
+    RETURN,
     COMMA,
+    PRINT,
+  
+  
     DOT,
     QUESTION_MARK,
     ARROW,
