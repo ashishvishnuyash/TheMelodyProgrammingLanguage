@@ -4,7 +4,7 @@
 #include <math.h>
 
 Variable *variables = NULL;
-
+static Function* functions = NULL;
 char* concat(const char *s1, const char *s2)
 {
     const size_t len1 = strlen(s1);
@@ -55,6 +55,40 @@ Literal* get_variable(const char* name) {
     }
     fprintf(stderr, "Error: Variable '%s' not found\n", name);
     exit(EXIT_FAILURE);
+}
+static Function* get_function(const char* name) {
+    Function* func = functions;
+    while (func) {
+        if (strcmp(func->name, name) == 0) {
+            return func;
+        }
+        func = func->next;
+    }
+    fprintf(stderr, "Error: Undefined function '%s'\n", name);
+    exit(EXIT_FAILURE);
+}
+static void set_function(const char* name, ASTNode* body, char** parameters, int param_count) {
+    Function* func = functions;
+    while (func) {
+        if (strcmp(func->name, name) == 0) {
+            func->body = body;
+            func->parameters = parameters;
+            func->param_count = param_count;
+            return;
+        }
+        func = func->next;
+    }
+
+    func = (Function*)malloc(sizeof(Function));
+    func->name = strdup(name);
+    func->body = body;
+    func->parameters = parameters;
+    func->param_count = param_count;
+    func->next = functions;
+    functions = func;
+    // print body ast
+    
+    // printf("set_function: %s\n", name);
 }
 
 
@@ -439,11 +473,11 @@ Literal* evaluate_unary_op(ASTNode* node) {
             }
         case INCREMENT:
             if (operand->type==TYPE_INT){
-                printf("Incrementing%d\n", *((int*)operand->value)+1);
+                // printf("Incrementing%d\n", *((int*)operand->value)+1);
 
                 value = malloc(sizeof(int));
                 *((int*)value) = (*((int*)operand->value))+1;
-                printf("Incremented to %d\n", *((int*)value));
+                // printf("Incremented to %d\n", *((int*)value));
                 Literal *literal = (Literal*)malloc(sizeof(Literal));
                 literal->type = TYPE_INT;
                 literal->value = value;
@@ -508,7 +542,7 @@ Literal* evaluate_assignment(ASTNode* node) {
 
             return right;
         case PLUS_ASSIGN:{
-            printf("Left++: %s\n", left);
+            // printf("Left++: %s\n", left);
                 Literal *left_literal = get_variable(left);
                 if(left_literal->type == TYPE_INT && right->type == TYPE_INT){
                     // printf("Left:++++ %s\n", *((char**)left_literal->value));
@@ -523,7 +557,7 @@ Literal* evaluate_assignment(ASTNode* node) {
                 }
                 else if(left_literal->type == TYPE_STRING && right->type == TYPE_STRING){
                     // printf("+++%s\n",*((char**)left_literal->value));
-                    printf("%s\n",*((char**)right->value));
+                    // printf("%s\n",*((char**)right->value));
                     
                     value = malloc(sizeof(char*));
                     *((char**)value) = concat(*((char**)left_literal->value),*((char**)right->value));
@@ -552,36 +586,130 @@ Literal* evaluate_assignment(ASTNode* node) {
             exit(1);
     }
 }
-       
 
+Literal* print_statement(ASTNode* node) {
+    // printf("Print Statement - %s\n", node->data.function_call.function_name);
+    // printf("%d\n",node->data.function_call.arg_count);
+    for (int i = 0; i < node->data.function_call.arg_count; i++) {
+
+        Literal* arg = interpret( node->data.function_call.arguments[i]);
+        if(arg->type == TYPE_INT){
+            printf("%d",*((int*)arg->value));
+        }
+        if (arg->type == TYPE_STRING) {
+            printf("%s",*((char**)arg->value));
+        }
+        if (arg->type == TYPE_FLOAT) {
+            printf("%f",*((float*)arg->value));
+        }
+        
+    }
+    printf("\n");
+    return NULL;
+}
+
+Literal* evaluate_function_def(ASTNode* node) {
+    set_function(node->data.function_def.name, node->data.function_def.body, node->data.function_def.parameters, node->data.function_def.param_count);
+    return NULL;
+}
+Literal* evaluate_function_call(ASTNode* node) {
+    // printf("Function Call: %s\n", node->data.function_call.function_name);
+    
+
+    Function* func = get_function(node->data.function_call.function_name);
+   
+   
+    if (func == NULL) {
+        fprintf(stderr, "Error: Function '%s' not defined\n", node->data.function_call.function_name);
+        exit(EXIT_FAILURE);
+    }
+
+    if (func->param_count != node->data.function_call.arg_count) {
+        fprintf(stderr, "Error: Incorrect number of arguments for function '%s'\n", node->data.function_call.function_name);
+        exit(EXIT_FAILURE);
+    }
+
+    Variable* previous_variables = variables;
+    variables = NULL;
+
+    for (int i = 0; i < func->param_count; i++) {
+        Literal* arg_value = interpret(node->data.function_call.arguments[i]);
+        // printf("Arg Value: %d\n", *((int*)arg_value->value));
+        set_variable(func->parameters[i], arg_value);
+    }
+    // printf("cll %d",func->body->type);
+
+    Literal* result = interpret(func->body);
+    // printf("cll %d",0);
+
+    
+
+    // printf(">%d",result->type);
+   
+    
+
+    // free_variables();
+    variables = previous_variables;
+
+    return result;
+}
+
+Literal* evaluate_if_statement(ASTNode* node) {
+    Literal* condition = interpret(node->data.if_statement.condition);
+    int condition_result = *((int*)condition->value);
+    // printf("%d",condition_result);
+    if (condition_result) {
+        // printf("Result: %d\n", node->data.if_statement.then_branch->type== AST_STATEMENT_LIST);
+        Literal* result = interpret(node->data.if_statement.then_branch);
+        printf("h");
+        if (result!= NULL) {
+            printf("h>>");
+
+            return result;
+        }
+        // return result;
+    } else if (node->data.if_statement.else_branch) {
+        Literal* result = interpret(node->data.if_statement.else_branch);
+        if (result != NULL) {
+            return result;
+        }
+        // return interpret(node->data.if_statement.else_branch);
+    }
+    return NULL;
+}
 
 Literal* interpret(ASTNode* node) {
     if (node == NULL) {
         fprintf(stderr, "Error: NULL node in AST\n");
         exit(1);
     }
+    Literal* valued = NULL;
 
     switch (node->type) {
         case AST_NUMBER:
         case AST_STRING:
         case AST_FLOAT:
-            printf("Literal\n");
+            // printf("Literal\n");
             return evaluate_literal(node);
         
         case AST_BINARY_OP:
-            printf("Binary\n");
+            // printf("Binary\n");
             return evaluate_binary_op(node); 
         case AST_UNARY_OP:
             return evaluate_unary_op(node);
         case AST_IDENTIFIER:
-            printf("Identifier\n");
+            // printf("Identifier\n");
             // return NULL;
             Literal* value;
             value=get_variable(node->data.identifier);
             // printf("%d\n",*((int*)value->value));
             return value;
+        case AST_PRINT:
+            // printf(">> %s",node->data.function_call.function_name);
+            
+            return print_statement(node);
         case AST_ASSIGNMENT:{
-            printf("Assignment\n");
+            // printf("Assignment\n");
             
             Literal* value;
             // value = interpret(node->data.assignment_op.right);
@@ -593,14 +721,66 @@ Literal* interpret(ASTNode* node) {
             return value;
             // return NULL;
         }
+        case AST_FUNCTION_DEF:
+            printf("Function Definition\n");
+            // printf("%s\n",node->data.function_def.name);
+            // printf("%d\n",node->data.function_def.param_count);
+            // printf("%d\n",node->data.function_def.body->type);
+            // for (int i = 0; i < node->data.function_def.param_count; i++) {
+            //     printf("%s\n",node->data.function_def.parameters[i]);
+            // }
+            return evaluate_function_def(node);
+        case AST_FUNCTION_CALL:
+            printf("Function Call\n");
+            // Literal* value;
+            // value = ;
+            // printf("%s",*((char**)value->value));       
+            // printf("%s\n",node->data.function_def.name);
+            return evaluate_function_call(node);
+        case AST_RETURN:
+            // printf("...Return\n");
+            // Literal* value = 
+            // printf("%d\n",*((int*)value->value));
+
+            return interpret(node->data.return_value);;
+
+
+            // printf("%d\n",node->data.function_def.parameters[0]->type);
+        case AST_IF_STATEMENT:
+            printf("If Statement\n");
+            // printf("%d\n",node->data.if_statement.condition->type);
+            valued = evaluate_if_statement(node);
+            // if (valued != NULL) {
+            //     // printf("%s\n",*((char**)valued->value));
+            //     return valued;
+            // }
+            return valued;
+            // return set_function(node);
         case AST_STATEMENT_LIST:
-            printf("Statement List\n");
+            // printf("Statement List\n");
+            // printf(">>>>>>>>%d\n",node->data.statement_list.statement_count);
             for (int i = 0; i < node->data.statement_list.statement_count; i++) {
+                // printf("Q");                
                 Literal* res;
                 res = interpret(node->data.statement_list.statements[i]);
+                if (node->data.statement_list.statements[i]->type==AST_RETURN) {
+                    printf("...Return\n");
+                    return res;
+                }
+                if (node->data.statement_list.statements[i]->type==AST_IF_STATEMENT) {
+                    if (res != NULL){
+
+                    return res;
+                    }
+                }
+                
+                
+                
+                // printf("%d\n",*((int*)res->value));
                 // printf("%s\n",*((char**)res->value));
                 // return res;
-                printf("%d\n",*((int*)res->value));
+                // printf("%d\n",*((int*)res->value));
+              
                 
             }            
             return NULL;

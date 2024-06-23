@@ -25,6 +25,17 @@ typedef struct Variable {
     struct Variable *next;  // Use 'struct Variable' here
 } Variable;
 
+typedef struct Function {
+    char* name;
+    ASTNode* body;
+    char** parameters;
+    int param_count;
+    struct Function* next;
+} Function;
+typedef struct {
+    Literal* value;
+    int is_return;
+} ReturnValue;
 // Function to interpret an AST and return the result
 Literal* interpret(ASTNode* node);
 

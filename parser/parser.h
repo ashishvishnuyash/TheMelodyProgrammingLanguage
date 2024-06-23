@@ -7,8 +7,8 @@
 
 // AST node types
 typedef enum {
-    AST_NUMBER,
     AST_FLOAT,
+    AST_NUMBER,
     AST_STRING,
     AST_BINARY_OP,
     AST_UNARY_OP,
@@ -18,6 +18,10 @@ typedef enum {
     AST_ASSIGNMENT,
     AST_STATEMENT_LIST,
     AST_FUNCTION_DEF,
+    AST_FUNCTION_CALL,
+    AST_IF_STATEMENT,
+    AST_PRINT,
+    AST_RETURN,
 } ASTNodeType;
 
 // AST node structure
@@ -46,12 +50,30 @@ typedef struct ASTNode {
             TokenType op;
             struct ASTNode* right;
         } assignment_op;
+        struct {
+            char* name;
+            int param_count;
+            char** parameters;
+            struct ASTNode* body;
+        } function_def;
+        struct {
+            char* function_name;
+            int arg_count;
+            struct ASTNode** arguments;
+        } function_call;
         
         struct {
             struct ASTNode** statements;
             int statement_count;
             
         } statement_list;
+        struct {
+            struct ASTNode* condition;
+            struct ASTNode* then_branch;
+            struct ASTNode* else_branch; // Can be NULL
+        } if_statement;
+
+         struct ASTNode* return_value;
      
     } data;
 } ASTNode;

@@ -92,10 +92,44 @@ Token* tokenize(const char* input) {
         if (isalpha(input[i]) || input[i] == '_') {
             size_t start = i;
             while (isalnum(input[i]) || input[i] == '_') i++;
+
+           if (strncmp(input + start, "return", 2) == 0) {
+            tokens[token_count].type = RETURN;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+
+           } else if (strncmp(input + start, "if", 2) == 0) {
+               tokens[token_count].type = IF;
+               tokens[token_count].value = strndup(input + start, i - start);
+               token_count++;
+            continue;
+           } else if (strncmp(input + start, "else", 4) == 0) {
+               tokens[token_count].type = ELSE;               
+               tokens[token_count].value = strndup(input + start, i - start);
+               token_count++;
+            continue;
+           }
+           else if (strncmp(input + start, "while", 5) == 0) {
+            tokens[token_count].type = WHILE;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if (strncmp(input + start, "print", 5) == 0) {
+            tokens[token_count].type = PRINT;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+
+
+           else{
             tokens[token_count].type = IDENTIFIER;
             tokens[token_count].value = strndup(input + start, i - start);
             token_count++;
             continue;
+           }
         }
 
         switch (input[i]) {

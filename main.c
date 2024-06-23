@@ -70,9 +70,9 @@ int main(int argc, char const *argv[])
     // printf("Value: %f\n", valued);
 
    // Print the tokens
-   for (int i = 0; tokens[i].type != TOKEN_EOF; i++) {
-    printf("Token type: %d, Value: %s\n", tokens[i].type, tokens[i].value);
-    }
+//    for (int i = 0; tokens[i].type != TOKEN_EOF; i++) {
+//     printf("Token type: %d, Value: %s\n", tokens[i].type, tokens[i].value);
+//     }
     free_tokens(tokens);
     free_ast(ast);
 
