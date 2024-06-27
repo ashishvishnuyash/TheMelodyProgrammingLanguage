@@ -124,6 +124,31 @@ ASTNode* create_comparison_node(ASTNode* left, TokenType op, ASTNode* right) {
     node->data.binary_op.right = right;
     return node;
 }
+ASTNode* parse_list(Token** tokens) {
+    ASTNode** elements = NULL;
+    int count = 0;
+    
+
+    if (( (*tokens)++)->type != RBRACKET) {
+        do {
+            
+            elements = realloc(elements, sizeof(ASTNode*) * (count + 1));
+            elements[count++] = parse_expression(tokens);
+        } while (( (*tokens)++)->type== COMMA);
+        // printf("%s",(*tokens)->value);
+        
+        
+    }
+   
+   
+
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = AST_LIST;
+    node->data.list.count = count;
+    node->data.list.elements = elements;
+    return node;
+}
+
 
 
 ASTNode* parse_if_statement(Token** tokens) {
@@ -242,7 +267,11 @@ ASTNode* parse_primary(Token** tokens) {
         }
         *tokens += 1; // Consume ')'
         return node;
-    } else if (token->type == PLUS || token->type == MINUS || token->type == INCREMENT || token->type == DECREMENT || token->type == LOGICAL_NOT || token->type == BITWISE_NOT) {
+    } 
+    else if (token->type == LBRACKET){
+        return parse_list(tokens);
+    }
+    else if (token->type == PLUS || token->type == MINUS || token->type == INCREMENT || token->type == DECREMENT || token->type == LOGICAL_NOT || token->type == BITWISE_NOT) {
         TokenType op = token->type;
         *tokens += 1; // Consume the unary operator
         return create_unary_op_node(op, parse_primary(tokens));
@@ -285,8 +314,30 @@ ASTNode* parse_primary(Token** tokens) {
    
 
         }
+        if ((*tokens + 1)->type == LBRACKET) {
+            ASTNode* list_name =  create_identifier_node(token->value);
+            *tokens += 1; // Consume '['
+            *tokens += 1; // Consume '['
+
+            ASTNode* list_index = parse_expression(tokens);
+            if ((*tokens)->type != RBRACKET) {
+                fprintf(stderr, "Error: Expected ']' after list index.\n");
+                exit(EXIT_FAILURE);
+            }
+            *tokens += 1; // Consume ']'
+
+            ASTNode* node = malloc(sizeof(ASTNode));
+            node->type = AST_LIST_INDEX;
+            node->data.ASTListIndex.list = list_name;
+            node->data.ASTListIndex.index = list_index;
+            return node;
+
+
+        }
+    
+
         *tokens += 1; // Consume the identifier
-        
+       
         return create_identifier_node(token->value);
     }
     else if (token->type == PRINT) {

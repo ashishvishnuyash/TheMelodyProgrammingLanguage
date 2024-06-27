@@ -12,10 +12,12 @@ typedef enum {
     AST_STRING,
     AST_BINARY_OP,
     AST_UNARY_OP,
+    AST_LIST,
     AST_COMPARISON,
     AST_LOGICAL_OP,
     AST_IDENTIFIER,
     AST_ASSIGNMENT,
+    AST_LIST_INDEX,
     AST_STATEMENT_LIST,
     AST_FUNCTION_DEF,
     AST_FUNCTION_CALL,
@@ -74,6 +76,14 @@ typedef struct ASTNode {
         } if_statement;
 
          struct ASTNode* return_value;
+         struct {
+            int count;
+            struct ASTNode** elements;
+        } list;
+        struct {
+            struct ASTNode* list;
+            struct ASTNode* index;
+        } ASTListIndex;
      
     } data;
 } ASTNode;

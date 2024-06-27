@@ -73,6 +73,7 @@ Token* tokenize(const char* input) {
                 free_tokens(tokens);
                 exit(EXIT_FAILURE);
             }
+            // printf("%s\n",  strndup(input + start, i - start));
             tokens[token_count].type = STRING;
             tokens[token_count].value = strndup(input + start, i - start);
             i++;
@@ -333,6 +334,7 @@ Token* tokenize(const char* input) {
                 tokens[token_count].value = strndup(input + i, 1);
                 i++;
                 break;
+            
             default:
                 fprintf(stderr, "Error: Unrecognized character '%c'\n", input[i]);
                 free_tokens(tokens);

@@ -123,7 +123,23 @@ static void set_function(const char* name, ASTNode* body, char** parameters, int
             literal->value = value;
             return literal;
         }
-        
+        case AST_LIST:{
+            Literal* list = malloc(sizeof(Literal));
+            list->type=TYPE_LIST;
+            list->List.count = node->data.list.count;
+            list->List.elements = malloc(sizeof(void*) * list->List.count);
+            for (int i = 0; i < list->List.count; i++) {
+              
+                list->List.elements[i] = interpret(node->data.list.elements[i]);
+            }
+           
+            
+            
+            return list;
+            
+            
+            
+        }
         
        
         default:
@@ -279,6 +295,14 @@ Literal* evaluate_binary_op(ASTNode* node) {
             }else if (left->type == TYPE_FLOAT && right->type == TYPE_FLOAT || left->type == TYPE_INT && right->type == TYPE_FLOAT || left->type == TYPE_FLOAT && right->type == TYPE_INT){
                 value = malloc(sizeof(double));
                 *((int*)value) = (*((double*)left->value) == *((double*)right->value));
+                Literal *literal = (Literal*)malloc(sizeof(Literal));
+                literal->type = TYPE_INT;
+                literal->value = value;
+                return literal;
+            }else if (left->type == TYPE_STRING && right->type == TYPE_STRING){
+                value = malloc(sizeof(int));
+                *((int*)value) = (strcmp(*((char**)left->value), *((char**)right->value)) == 0);
+                // printf("left: %s\n", *((char**)left->value));
                 Literal *literal = (Literal*)malloc(sizeof(Literal));
                 literal->type = TYPE_INT;
                 literal->value = value;
@@ -586,13 +610,10 @@ Literal* evaluate_assignment(ASTNode* node) {
             exit(1);
     }
 }
+Literal* print_function(Literal* arg){
 
-Literal* print_statement(ASTNode* node) {
-    // printf("Print Statement - %s\n", node->data.function_call.function_name);
-    // printf("%d\n",node->data.function_call.arg_count);
-    for (int i = 0; i < node->data.function_call.arg_count; i++) {
-
-        Literal* arg = interpret( node->data.function_call.arguments[i]);
+     
+      
         if(arg->type == TYPE_INT){
             printf("%d",*((int*)arg->value));
         }
@@ -600,8 +621,34 @@ Literal* print_statement(ASTNode* node) {
             printf("%s",*((char**)arg->value));
         }
         if (arg->type == TYPE_FLOAT) {
-            printf("%f",*((float*)arg->value));
+            printf("%f",*((double*)arg->value));
         }
+        if(arg->type == TYPE_LIST){
+            printf("[");
+            for (int i = 0; i < arg->List.count; i++)
+            {
+                if (i > 0) {
+                    printf(",");
+                }
+                
+                print_function(arg->List.elements[i]);
+                
+            }
+            printf("]");
+            
+        }
+
+}
+
+Literal* print_statement(ASTNode* node) {
+    // printf("Print Statement - %s\n", node->data.function_call.function_name);
+    // printf("%d\n",node->data.function_call.arg_count);
+    for (int i = 0; i < node->data.function_call.arg_count; i++) {
+        Literal* arg = interpret( node->data.function_call.arguments[i]);
+        print_function(arg);
+
+       
+        
         
     }
     printf("\n");
@@ -628,15 +675,26 @@ Literal* evaluate_function_call(ASTNode* node) {
         fprintf(stderr, "Error: Incorrect number of arguments for function '%s'\n", node->data.function_call.function_name);
         exit(EXIT_FAILURE);
     }
+    Literal* arg_value = interpret(node->data.function_call.arguments[0]);
 
-    Variable* previous_variables = variables;
-    variables = NULL;
+    // printf("%d",*((int*)arg_value->value));
+    
+    Literal** arg = NULL; 
 
     for (int i = 0; i < func->param_count; i++) {
-        Literal* arg_value = interpret(node->data.function_call.arguments[i]);
-        // printf("Arg Value: %d\n", *((int*)arg_value->value));
-        set_variable(func->parameters[i], arg_value);
+        
+
+        arg =realloc(arg, sizeof(Literal*) * ( i + 1));
+        arg[i] = interpret(node->data.function_call.arguments[i]);
     }
+    Variable* previous_variables = variables;
+    variables = NULL;
+    for (int i = 0; i < func->param_count; i++) {
+        // printf(">>%d",*((int*)->value));
+        set_variable(func->parameters[i],arg[i]);
+        
+    }
+    
     // printf("cll %d",func->body->type);
 
     Literal* result = interpret(func->body);
@@ -661,9 +719,9 @@ Literal* evaluate_if_statement(ASTNode* node) {
     if (condition_result) {
         // printf("Result: %d\n", node->data.if_statement.then_branch->type== AST_STATEMENT_LIST);
         Literal* result = interpret(node->data.if_statement.then_branch);
-        printf("h");
-        if (result!= NULL) {
-            printf("h>>");
+        // printf("h");
+        if (result!= NULL) { 
+            // printf("h>>");
 
             return result;
         }
@@ -678,6 +736,24 @@ Literal* evaluate_if_statement(ASTNode* node) {
     return NULL;
 }
 
+Literal* evaluate_list_index(ASTNode* node) {
+    Literal* list = interpret(node->data.ASTListIndex.list);
+    Literal* index_node = interpret(node->data.ASTListIndex.index);
+    
+    if (index_node->type != TYPE_INT) {
+        fprintf(stderr, "Error: List index is not a number\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    int index = *((int*)index_node->value);
+    if (index < 0 || index >= list->List.count) {
+        fprintf(stderr, "Error: List index out of bounds\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    return list->List.elements[index];
+}
+
 Literal* interpret(ASTNode* node) {
     if (node == NULL) {
         fprintf(stderr, "Error: NULL node in AST\n");
@@ -689,6 +765,7 @@ Literal* interpret(ASTNode* node) {
         case AST_NUMBER:
         case AST_STRING:
         case AST_FLOAT:
+        case AST_LIST:
             // printf("Literal\n");
             return evaluate_literal(node);
         
@@ -722,7 +799,7 @@ Literal* interpret(ASTNode* node) {
             // return NULL;
         }
         case AST_FUNCTION_DEF:
-            printf("Function Definition\n");
+            // printf("Function Definition\n");
             // printf("%s\n",node->data.function_def.name);
             // printf("%d\n",node->data.function_def.param_count);
             // printf("%d\n",node->data.function_def.body->type);
@@ -731,7 +808,7 @@ Literal* interpret(ASTNode* node) {
             // }
             return evaluate_function_def(node);
         case AST_FUNCTION_CALL:
-            printf("Function Call\n");
+            // printf("Function Call\n");
             // Literal* value;
             // value = ;
             // printf("%s",*((char**)value->value));       
@@ -747,7 +824,7 @@ Literal* interpret(ASTNode* node) {
 
             // printf("%d\n",node->data.function_def.parameters[0]->type);
         case AST_IF_STATEMENT:
-            printf("If Statement\n");
+            // printf("If Statement\n");
             // printf("%d\n",node->data.if_statement.condition->type);
             valued = evaluate_if_statement(node);
             // if (valued != NULL) {
@@ -755,7 +832,9 @@ Literal* interpret(ASTNode* node) {
             //     return valued;
             // }
             return valued;
-            // return set_function(node);
+        case AST_LIST_INDEX:
+            printf("List Index\n");
+            return evaluate_list_index(node);
         case AST_STATEMENT_LIST:
             // printf("Statement List\n");
             // printf(">>>>>>>>%d\n",node->data.statement_list.statement_count);
@@ -764,7 +843,7 @@ Literal* interpret(ASTNode* node) {
                 Literal* res;
                 res = interpret(node->data.statement_list.statements[i]);
                 if (node->data.statement_list.statements[i]->type==AST_RETURN) {
-                    printf("...Return\n");
+                    // printf("...Return\n");
                     return res;
                 }
                 if (node->data.statement_list.statements[i]->type==AST_IF_STATEMENT) {
