@@ -67,7 +67,11 @@ typedef enum {
     CONTINUE,    
     COMMA,
     PRINT,
-  
+    CLASS,
+    THIS,
+    IMPORT,
+    FROM,
+    NEW,
   
     DOT,
     QUESTION_MARK,

@@ -110,9 +110,43 @@ Token* tokenize(const char* input) {
                tokens[token_count].value = strndup(input + start, i - start);
                token_count++;
             continue;
+           }else if (strncmp(input + start, "class", 5) == 0) {
+               tokens[token_count].type = CLASS;
+               tokens[token_count].value = strndup(input + start, i - start);
+               token_count++;
+            continue;}
+            else if (strncmp(input + start, "this", 4) == 0) {
+            tokens[token_count].type = THIS;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if (strncmp(input + start, "import", 6) == 0) {
+            tokens[token_count].type = IMPORT;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if (strncmp(input + start, "from", 4) == 0) {
+            tokens[token_count].type = FROM;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if (strncmp(input + start, "new", 3) == 0) {
+            tokens[token_count].type = NEW;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
            }
            else if (strncmp(input + start, "while", 5) == 0) {
             tokens[token_count].type = WHILE;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if (strncmp(input + start, "for", 3) == 0) {
+            tokens[token_count].type = FOR;
             tokens[token_count].value = strndup(input + start, i - start);
             token_count++;
             continue;
@@ -194,6 +228,12 @@ Token* tokenize(const char* input) {
                     i++;
                 }
                 break;
+            case '.':
+                tokens[token_count].type = DOT;
+                tokens[token_count].value = strndup(input + i, 1);
+                i++;
+            break;
+            
             case '%':
                 if (input[i + 1] == '=') {
                     tokens[token_count].type = MODULUS_ASSIGN;

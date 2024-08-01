@@ -1,0 +1,3 @@
+dict= {1:[1,2],2:"how",3:"are",4:"you"}
+dict1=dict[1]
+print(dict1[1])

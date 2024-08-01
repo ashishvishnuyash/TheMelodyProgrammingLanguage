@@ -2,7 +2,7 @@
 #define PARSER_H
 
 #include "..\tokenizer\tokenizer.h"
-
+// #include ".\includes\headfiles\class.h"
 
 
 // AST node types
@@ -24,6 +24,14 @@ typedef enum {
     AST_IF_STATEMENT,
     AST_PRINT,
     AST_RETURN,
+    AST_WHILE_LOOP,
+    AST_FOR_LOOP,
+    AST_DICTIONARY,
+    AST_CLASS_DEF,
+    AST_CLASS_INSTANCE,
+    AST_METHOD_DEF,
+    AST_METHOD_CALL,
+
 } ASTNodeType;
 
 // AST node structure
@@ -84,7 +92,45 @@ typedef struct ASTNode {
             struct ASTNode* list;
             struct ASTNode* index;
         } ASTListIndex;
-     
+
+        struct {
+            struct ASTNode* condition;
+            struct ASTNode* body;
+        } ASTWhileLoop;
+
+        struct {
+            struct ASTNode* initializer;
+            struct ASTNode* condition;
+            struct ASTNode* increment;
+            struct ASTNode* body;
+        } ASTForLoop;
+        struct {
+            struct ASTNode** keys;
+            struct ASTNode** values;
+            int count;
+        } ASTDictionary;
+        struct {
+            char* class_name;
+            struct ASTNode** members;
+            size_t member_count;
+        } class_def;
+        struct {
+            char* class_name;
+            struct ASTNode** args;
+            size_t arg_count;
+        } class_instance;
+        struct {
+            char* method_name;
+            struct ASTNode** params;
+            size_t param_count;
+            struct ASTNode* body;
+        } method_def;
+        struct {
+            struct ASTNode* instance;
+            char* method_name;
+            struct ASTNode** args;
+            size_t arg_count;
+        } method_call;
     } data;
 } ASTNode;
 

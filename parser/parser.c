@@ -223,9 +223,231 @@ ASTNode* parse_if_statement(Token** tokens) {
 
     return node;
 }
-// Parse primary expressions (numbers, parentheses, unary operators)
+ASTNode* parse_while_statement(Token** tokens) {
+    (*tokens)++;
+    (*tokens)++;
+    ASTNode* condition = parse_expression(tokens);
+    (*tokens)++;
+    // printf("%s",(*tokens)->value);
+
+    ASTNode* body = parse_block(tokens);
+    // (*tokens)++;
+
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = AST_WHILE_LOOP;
+    node->data.ASTWhileLoop.condition = condition;
+    node->data.ASTWhileLoop.body = body;
+
+    return node;
+}
+
+
+ASTNode* parse_for_statement(Token** tokens) {
+    (*tokens)++;
+    (*tokens)++;
+   
+    ASTNode* initializer = parse_statement(tokens);
+    ASTNode* condition = parse_expression(tokens);
+    (*tokens)++;
+
+    ASTNode* increment = parse_statement(tokens);
+    (*tokens)++;
+
+    ASTNode* body = parse_block(tokens);
+
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = AST_FOR_LOOP;
+    node->data.ASTForLoop.initializer = initializer;
+    node->data.ASTForLoop.condition = condition;
+    node->data.ASTForLoop.increment = increment;
+    node->data.ASTForLoop.body = body;
+
+    return node;
+}
+ASTNode* parse_dictionary_literal(Token** tokens) {
+    (*tokens)++; // Assuming '{' is the start of a dictionary
+
+    ASTNode** keys = malloc(sizeof(ASTNode*) * 10); // Initial capacity
+    ASTNode** values = malloc(sizeof(ASTNode*) * 10); // Initial capacity
+    int count = 0;
+
+    while ((*tokens)->type!= RBRACE) {
+        if (count >= 10) { // Expand capacity if needed
+            keys = realloc(keys, sizeof(ASTNode*) * (count + 10));
+            values = realloc(values, sizeof(ASTNode*) * (count + 10));
+        }
+
+        keys[count] = parse_expression(tokens);
+        (*tokens)++;// Assuming ':' separates key and value
+        values[count] = parse_expression(tokens);
+        count++;
+
+        if ((*tokens)->type == COMMA) {
+           (*tokens)++;
+        }
+    }
+
+  (*tokens)++; // Assuming '}' is the end of a dictionary
+
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = AST_DICTIONARY;
+    node->data.ASTDictionary.keys = keys;
+    node->data.ASTDictionary.values = values;
+    node->data.ASTDictionary.count = count;
+
+    return node;
+}
+// ASTNode* parse_method_definition(Token** tokens) {
+//     printf("parse_method_definition\n");
+//     char* method_name = strdup((*tokens)->value);
+//     printf("method_name %s\n", method_name);
+//     (*tokens)++;
+//     (*tokens)++;
+//     (*tokens)++;
+
+//     ASTNode** params = malloc(sizeof(ASTNode*) * 10);
+//     size_t param_count = 0;
+//     while ((*tokens)->type != RPAREN) {
+//         if (param_count >= 10) {
+//             params = realloc(params, sizeof(ASTNode*) * (param_count + 10));
+//         }
+//         params[param_count++] = parse_expression(tokens);
+//         if ((*tokens)->type == COMMA) {
+//             (*tokens)++;
+//         }
+//     }
+//     (*tokens)++;
+
+//     // (*tokens)++;
+
+
+//     ASTNode* body = parse_block(tokens);
+
+//     (*tokens)++;
+    
+//     // printf(">>  %s\n", (*tokens)->value);
+
+
+//     ASTNode* node = malloc(sizeof(ASTNode));
+//     node->type = AST_METHOD_DEF;
+//     node->data.method_def.method_name = method_name;
+//     node->data.method_def.params = params;
+//     node->data.method_def.param_count = param_count;
+//     node->data.method_def.body = body;
+
+//     return node;
+// }
+// // ASTNode* parse_class_definition(Token** tokens) {
+//     (*tokens)++; // Assuming 'class' keyword
+//     char* class_name = strdup((*tokens)->value);
+    
+//     (*tokens)++; // Assuming 'class' keyword
+
+//     (*tokens)++; // Assuming 'class' keyword
+
+//     ASTNode** members = malloc(sizeof(ASTNode*) * 10);
+//     size_t member_count = 0;
+//     while ((*tokens)->type != RBRACE) {
+//     printf("class_name %d\n", (*tokens)->type == IDENTIFIER);
+//         if (member_count >= 10) {
+//             members = realloc(members, sizeof(ASTNode*) * (member_count + 10));
+//         }
+        
+//         if ((*tokens)->type == IDENTIFIER && (*tokens +1)->type == ASSIGN && (*tokens+ 2)->type == LPAREN) {
+
+//             members[member_count++] = parse_method_definition(tokens);
+//         } else {
+//             // Handle other member types (fields, etc.)
+//             members[member_count++] = parse_statement(tokens);
+//         }
+//     }
+    
+//     (*tokens)++;
+//     ASTNode* node = malloc(sizeof(ASTNode));
+//     node->type = AST_CLASS_DEF;
+//     node->data.class_def.class_name = class_name;
+//     node->data.class_def.members = members;
+//     node->data.class_def.member_count = member_count;
+
+//     return node;
+// }
+
+// ASTNode* parse_class_instance(Token** tokens) {
+//     (*tokens)++;
+//     char* class_name = strdup((*tokens)->value);
+//     (*tokens)++;
+//     (*tokens)++;
+    
+
+//     ASTNode** args = malloc(sizeof(ASTNode*) * 10);
+//     size_t arg_count = 0;
+//     while ((*tokens)->type!= RPAREN) {
+//         if (arg_count >= 10) {
+//             args = realloc(args, sizeof(ASTNode*) * (arg_count + 10));
+//         }
+//         args[arg_count++] = parse_expression(tokens);
+//         if ((*tokens)->type == COMMA) {
+//             (*tokens)++;
+
+//         }
+//     }
+//     (*tokens)++;
+
+
+//     ASTNode* node = malloc(sizeof(ASTNode));
+//     node->type = AST_CLASS_INSTANCE;
+//     node->data.class_instance.class_name = class_name;
+//     node->data.class_instance.args = args;
+//     node->data.class_instance.arg_count = arg_count;
+
+//     return node;
+// }
+
+// ASTNode* parse_method_call(ASTNode* instance, Token** tokens) {
+//     // printf("method_name ==%s\n", (*tokens)->value);
+//     // (*tokens)++;
+//     // ASTNode* instance = parse_primary(tokens);
+//     // printf("method_name %s\n", (*tokens)->value);
+            
+    
+//     while ((*tokens)->type == DOT) {
+//         (*tokens)++;
+//         char* method_name = strdup((*tokens)->value);
+//         (*tokens)++;
+
+//         (*tokens)++;
+
+
+//         ASTNode** args = malloc(sizeof(ASTNode*) * 10);
+//         size_t arg_count = 0;
+//         while ((*tokens)->type != RPAREN) {
+//             if (arg_count >= 10) {
+//                 args = realloc(args, sizeof(ASTNode*) * (arg_count + 10));
+//             }
+//             args[arg_count++] = parse_primary(tokens);
+//             if ((*tokens)->type == COMMA) {
+//                     (*tokens)++;
+
+//             }
+//         }
+//         (*tokens)++;
+
+
+//         ASTNode* node = malloc(sizeof(ASTNode));
+//         node->type = AST_METHOD_CALL;
+//         node->data.method_call.instance = instance;
+//         node->data.method_call.method_name = method_name;
+//         node->data.method_call.args = args;
+//         node->data.method_call.arg_count = arg_count;
+
+//         instance = node;
+//     }
+//     return instance;
+// }
+// // Parse primary expressions (numbers, parentheses, unary operators)
 ASTNode* parse_primary(Token** tokens) {
     Token* token = *tokens;
+    // printf("parse_primary %S\n", token->value);
 
     if (token->type == NUMBER) {
         int value = strtod(token->value, NULL);
@@ -237,6 +459,12 @@ ASTNode* parse_primary(Token** tokens) {
         *tokens += 1; // Consume the number
         return create_float_node(value);
     }
+    else if(token->type == WHILE) {
+        return parse_while_statement(tokens);
+    }
+    else if(token->type == FOR) {
+        return parse_for_statement(tokens);
+    }
     else if (token->type == STRING) {
         char* value = token->value;
         *tokens += 1; // Consume the string
@@ -246,6 +474,8 @@ ASTNode* parse_primary(Token** tokens) {
         // printf("Parsing if statement\n");
         return parse_if_statement(tokens);
     }
+   
+   
     else if (token->type == RETURN) {
         *tokens += 1; // Consume'return'
         // printf("Parsing return statement\n");
@@ -257,6 +487,14 @@ ASTNode* parse_primary(Token** tokens) {
 
         return node;
     }
+    // else if (token->type ==CLASS){
+    //     printf("Parsing class definition\n");
+    //     return parse_class_definition(tokens);
+    // }
+    // else if (token->type == NEW) {
+       
+    //     return parse_class_instance(tokens);
+    // }
     
     else if (token->type == LPAREN) {
         *tokens += 1; // Consume '('
@@ -276,7 +514,21 @@ ASTNode* parse_primary(Token** tokens) {
         *tokens += 1; // Consume the unary operator
         return create_unary_op_node(op, parse_primary(tokens));
     }
+    // else if (token->type==DOT){
+    //     // Token* token1 = (*tokens-1);
+    //     *tokens -= 1;
+    //     // printf("parse_primary> %s\n", (*tokens)->value);
+    //     ASTNode* node = parse_primary(tokens);
+    //     return parse_method_call( node ,tokens);
+
+    //     printf("parse_primary> %s\n", (*tokens)->value);
+        
+    // }
     else if (token->type == IDENTIFIER) {
+       
+        
+      
+        
         if ((*tokens + 1)->type == LPAREN) {
             *tokens += 1; // Consume '('
             // *tokens += 1; // Consume '('
@@ -325,7 +577,7 @@ ASTNode* parse_primary(Token** tokens) {
                 exit(EXIT_FAILURE);
             }
             *tokens += 1; // Consume ']'
-
+          
             ASTNode* node = malloc(sizeof(ASTNode));
             node->type = AST_LIST_INDEX;
             node->data.ASTListIndex.list = list_name;
@@ -337,6 +589,7 @@ ASTNode* parse_primary(Token** tokens) {
     
 
         *tokens += 1; // Consume the identifier
+        // Consume the identifier
        
         return create_identifier_node(token->value);
     }
@@ -377,20 +630,11 @@ ASTNode* parse_primary(Token** tokens) {
         
         // return create_identifier_node(token->value);
     }
-    else if (token->type == LBRACE) {
-        *tokens += 1; // Consume '('
-        
-        ASTNode* node = parse_program(tokens);
-        if ((*tokens)->type != RBRACE) {
-            fprintf(stderr, "Error: Expected '}'\n");
-            exit(1);
-        }
-        *tokens += 1; // Consume ')'
-        return node;
-        }
+    else if (token->type == LBRACE){
+        return parse_dictionary_literal(tokens);
+
+    }
     
-    
-   
 
     fprintf(stderr, "Error: Unexpected token '%s'\n", token->value);
     exit(0);

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+
 Variable *variables = NULL;
 static Function* functions = NULL;
 char* concat(const char *s1, const char *s2)
@@ -18,6 +19,64 @@ char* concat(const char *s1, const char *s2)
 
 //return data type of the value if integer, ot
 //return 0 if float
+
+Literal* create_map(size_t capacity) {
+    Literal* map = malloc(sizeof(Literal));
+    map->Map.entries = malloc(sizeof(Literal) * capacity);
+    map->Map.count = 0;
+    map->Map.capacity = capacity;
+    return map;
+}
+int is_equal(Literal* a , Literal* b ){
+    if (a->type == b->type){
+        if (a->type == TYPE_INT){
+            return *((int*)a->value) == *((int*)b->value);
+        }
+        else if (a->type == TYPE_FLOAT){
+            return *((double*)a->value) == *((double*)b->value);
+        }
+        else if (a->type == TYPE_STRING){
+            return strcmp(*((char**)a->value), *((char**)b->value)) == 0;
+        }
+    }
+    else{
+        return 0;
+    }
+
+}
+
+
+void map_set(Literal* map,  Literal* key, Literal* value) {
+    // Check if the key already exists
+    for (size_t i = 0; i < map->Map.count; i++) {
+        if(is_equal(map->Map.entries[i].MapEntry.key, key)) {
+            // Update the value of the existing entry
+            map->Map.entries[i].MapEntry.value = value;
+            return;
+        }
+    }
+
+    // If the key does not exist, add a new entry
+    if (map->Map.count >= map->Map.capacity) {
+        // Expand capacity if needed
+        map->Map.capacity *= 2;
+        map->Map.entries = realloc(map->Map.entries, sizeof(Literal) * map->Map.capacity);
+    }
+    map->type= TYPE_DICT;
+
+    map->Map.entries[map->Map.count].MapEntry.key = key;
+    map->Map.entries[map->Map.count].MapEntry.value = value;
+    map->Map.count++;
+}
+
+Literal* map_get(Literal* map,  Literal* key) {
+    for (size_t i = 0; i < map->Map.count; i++) {
+        if (is_equal(map->Map.entries[i].MapEntry.key, key)) {
+            return map->Map.entries[i].MapEntry.value;
+        }
+    }
+    return NULL;
+}
 
 Literal* set_variable(const char* name, Literal* value) {
     
@@ -637,6 +696,21 @@ Literal* print_function(Literal* arg){
             printf("]");
             
         }
+        if (arg->type == TYPE_DICT){
+            printf("{");
+            for (int i = 0; i < arg->Map.count; i++){
+                // printf("%d:",i);
+                print_function(arg->Map.entries[i].MapEntry.key);
+                printf(":");
+                print_function(arg->Map.entries[i].MapEntry.value);
+                if (i < arg->Map.count - 1) {
+                    printf(",");
+                }
+            }
+            printf("}");
+        }
+
+    return NULL;
 
 }
 
@@ -646,6 +720,7 @@ Literal* print_statement(ASTNode* node) {
     for (int i = 0; i < node->data.function_call.arg_count; i++) {
         Literal* arg = interpret( node->data.function_call.arguments[i]);
         print_function(arg);
+        // printf("%d",*((int*)arg->value));
 
        
         
@@ -740,19 +815,54 @@ Literal* evaluate_list_index(ASTNode* node) {
     Literal* list = interpret(node->data.ASTListIndex.list);
     Literal* index_node = interpret(node->data.ASTListIndex.index);
     
-    if (index_node->type != TYPE_INT) {
-        fprintf(stderr, "Error: List index is not a number\n");
-        exit(EXIT_FAILURE);
+    if (list->type == TYPE_DICT) {
+        // fprintf(stderr, "Error: List index is not a number\n");
+        return map_get(list, index_node);
     }
     
-    int index = *((int*)index_node->value);
-    if (index < 0 || index >= list->List.count) {
-        fprintf(stderr, "Error: List index out of bounds\n");
-        exit(EXIT_FAILURE);
+    if (list->type == TYPE_LIST) {
+        if (index_node->type != TYPE_INT) {
+            fprintf(stderr, "Error: List index is not a number\n");
+            exit(EXIT_FAILURE);
+        }
+        int index = *((int*)index_node->value);
+        if (index < 0 || index >= list->List.count) {
+            fprintf(stderr, "Error: List index out of bounds\n");
+            exit(EXIT_FAILURE);
+        }
+        
+        return list->List.elements[index];
     }
-    
-    return list->List.elements[index];
+   
 }
+Literal* evaluate_while_loop(ASTNode* node) {
+    // Literal* d = interpret(node->data.ASTWhileLoop.condition);
+    // printf("%d",d->value )
+    while (*((int*)interpret(node->data.ASTWhileLoop.condition)->value)) {
+        interpret(node->data.ASTWhileLoop.body);
+    }
+    return NULL;
+}
+
+Literal* evaluate_for_loop(ASTNode* node) {
+    for (interpret(node->data.ASTForLoop.initializer);
+         *((int*)interpret(node->data.ASTForLoop.condition)->value);
+         interpret(node->data.ASTForLoop.increment)) {
+        interpret(node->data.ASTForLoop.body);
+    }
+    return NULL;
+}
+void* evaluate_map(ASTNode* node) {
+    Literal* map = create_map(16);
+    for (int i = 0; i < node->data.ASTDictionary.count; i++) {
+        Literal* key = interpret(node->data.ASTDictionary.keys[i]);
+        Literal* value = interpret(node->data.ASTDictionary.values[i]);
+        map_set(map, key, value);
+    }
+    return map;
+}
+
+
 
 Literal* interpret(ASTNode* node) {
     if (node == NULL) {
@@ -798,6 +908,11 @@ Literal* interpret(ASTNode* node) {
             return value;
             // return NULL;
         }
+        
+            
+        case AST_DICTIONARY:
+            // printf("Dictionary\n");
+            return evaluate_map(node);
         case AST_FUNCTION_DEF:
             // printf("Function Definition\n");
             // printf("%s\n",node->data.function_def.name);
@@ -833,8 +948,12 @@ Literal* interpret(ASTNode* node) {
             // }
             return valued;
         case AST_LIST_INDEX:
-            printf("List Index\n");
+            
             return evaluate_list_index(node);
+        case AST_WHILE_LOOP:
+            return evaluate_while_loop(node);
+        case AST_FOR_LOOP:
+            return evaluate_for_loop(node);
         case AST_STATEMENT_LIST:
             // printf("Statement List\n");
             // printf(">>>>>>>>%d\n",node->data.statement_list.statement_count);
