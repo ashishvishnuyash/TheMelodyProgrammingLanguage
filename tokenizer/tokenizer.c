@@ -64,6 +64,32 @@ Token* tokenize(const char* input) {
             token_count++;
             continue;
         }
+        //comment #
+        if (input[i] == '#') {
+            size_t start = ++i;
+            while (input[i] != '\n' && i < length) i++;
+            if (i == length) {
+                fprintf(stderr, "Error: Unterminated comment\n");
+                free_tokens(tokens);
+                exit(EXIT_FAILURE);
+            }
+            continue;
+        }
+        //comment multi line comment
+        if (input[i] == '/' && input[i + 1] == '*') {
+            size_t start = ++i;
+            while (input[i] != '*' || input[i + 1] != '/') {
+                i++;
+                if (i == length) {
+                    fprintf(stderr, "Error: Unterminated multi-line comment\n");
+                    free_tokens(tokens);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            i += 2;
+            continue;
+        }
+        
 
         if (input[i] == '"') {
             size_t start = ++i;
@@ -121,6 +147,13 @@ Token* tokenize(const char* input) {
             token_count++;
             continue;
            }
+           else if (strncmp(input + start, "del", 3) == 0) {
+            tokens[token_count].type = DELETE;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           
            else if (strncmp(input + start, "import", 6) == 0) {
             tokens[token_count].type = IMPORT;
             tokens[token_count].value = strndup(input + start, i - start);
@@ -157,9 +190,48 @@ Token* tokenize(const char* input) {
             token_count++;
             continue;
            }
+           else if(strncmp(input + start, "fopen", 5)==0){
+            tokens[token_count].type = FOPEN;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if(strncmp(input + start, "fclose", 6)==0){
+            tokens[token_count].type = FCLOSE;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if(strncmp(input + start, "fwrite", 6)==0){
+            tokens[token_count].type = FWRITE;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if(strncmp(input + start, "fread", 5)==0){
+            tokens[token_count].type = FREAD;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if(strncmp(input + start, "scan", 4)==0){
+            tokens[token_count].type = SCAN;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           else if(strncmp(input + start, "import", 6)==0){
+            // printf("import\n");
+            tokens[token_count].type = IMPORT;
+            tokens[token_count].value = strndup(input + start, i - start);
+            token_count++;
+            continue;
+           }
+           
 
 
            else{
+            
             tokens[token_count].type = IDENTIFIER;
             tokens[token_count].value = strndup(input + start, i - start);
             token_count++;

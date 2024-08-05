@@ -59,7 +59,7 @@ int main(int argc, char const *argv[])
     // printf("Interpreted result: %f\n", show);
    
     interpret(ast);
-    print_ast(ast);
+    // print_ast(ast);
     
 
     // int value = *((int*)result->value);

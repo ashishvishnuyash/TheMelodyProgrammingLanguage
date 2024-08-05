@@ -18,6 +18,8 @@ typedef enum {
     AST_IDENTIFIER,
     AST_ASSIGNMENT,
     AST_LIST_INDEX,
+    AST_LIST_UPDATE,
+    AST_LIST_DELETE,
     AST_STATEMENT_LIST,
     AST_FUNCTION_DEF,
     AST_FUNCTION_CALL,
@@ -31,6 +33,12 @@ typedef enum {
     AST_CLASS_INSTANCE,
     AST_METHOD_DEF,
     AST_METHOD_CALL,
+    AST_READ_FILE,
+    AST_WRITE_FILE,
+    AST_OPEN_FILE,
+    AST_CLOSE_FILE,
+    AST_SCAN,
+    AST_IMPORT,
 
 } ASTNodeType;
 
@@ -110,6 +118,16 @@ typedef struct ASTNode {
             int count;
         } ASTDictionary;
         struct {
+            
+            struct ASTNode* target;
+            struct ASTNode* value;
+        } ASTListUpdate;
+        struct {
+            struct ASTNode* target;
+            
+        } ASTListDelete;
+
+        struct {
             char* class_name;
             struct ASTNode** members;
             size_t member_count;
@@ -131,6 +149,7 @@ typedef struct ASTNode {
             struct ASTNode** args;
             size_t arg_count;
         } method_call;
+        
     } data;
 } ASTNode;
 

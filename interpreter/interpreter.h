@@ -2,6 +2,8 @@
 #define INTERPRETER_H
 
 #include "../parser/parser.h"
+#include "../includes/readfile.h"
+#include "../tokenizer/tokenizer.h"
 
 // #include "class.h"
 
@@ -11,6 +13,7 @@ typedef enum {
     TYPE_STRING,
     TYPE_LIST,
     TYPE_DICT,
+    TYPE_FILE,
 } LiteralType;
 // Define the Variable struct and use typedef for convenience
 

@@ -69,6 +69,19 @@ void map_set(Literal* map,  Literal* key, Literal* value) {
     map->Map.count++;
 }
 
+void map_remove(Literal* map,  Literal* key) {
+    for (size_t i = 0; i < map->Map.count; i++) {
+        if (is_equal(map->Map.entries[i].MapEntry.key, key)) {
+            // Shift the remaining elements to fill the gap
+            for (size_t j = i; j < map->Map.count - 1; j++) {
+                map->Map.entries[j] = map->Map.entries[j + 1];
+            }
+            map->Map.count--;
+            return;
+        }
+    }
+}
+
 Literal* map_get(Literal* map,  Literal* key) {
     for (size_t i = 0; i < map->Map.count; i++) {
         if (is_equal(map->Map.entries[i].MapEntry.key, key)) {
@@ -241,6 +254,24 @@ Literal* evaluate_binary_op(ASTNode* node) {
                 literal->type = TYPE_STRING;
                 literal->value = value;
                 return literal;
+            }
+            else if(left->type==TYPE_LIST && right->type== TYPE_LIST){
+                Literal* list = malloc(sizeof(Literal));
+                list->type=TYPE_LIST;
+                list->List.count = left->List.count + right->List.count;
+                list->List.elements = malloc(sizeof(void*) * list->List.count);
+                for (int i = 0; i < left->List.count; i++) {
+                    list->List.elements[i] = left->List.elements[i];
+                }
+                for (int i = 0; i < right->List.count; i++) {
+                    list->List.elements[left->List.count + i] = right->List.elements[i];
+                }
+                return list;
+                
+            }
+            else{
+                fprintf(stderr, "Error: Invalid operand type for binary operator\n");
+                exit(1);
             }
             }
             
@@ -814,6 +845,7 @@ Literal* evaluate_if_statement(ASTNode* node) {
 Literal* evaluate_list_index(ASTNode* node) {
     Literal* list = interpret(node->data.ASTListIndex.list);
     Literal* index_node = interpret(node->data.ASTListIndex.index);
+    // printf("%d\n",*((int*)index_node->value));
     
     if (list->type == TYPE_DICT) {
         // fprintf(stderr, "Error: List index is not a number\n");
@@ -835,6 +867,55 @@ Literal* evaluate_list_index(ASTNode* node) {
     }
    
 }
+
+Literal* evaluate_list_update(ASTNode* node) {
+    Literal* list = interpret(node->data.ASTListUpdate.target->data.ASTListIndex.list);
+    Literal* index_node = interpret(node->data.ASTListUpdate.target->data.ASTListIndex.index);
+    Literal* value = interpret(node->data.ASTListUpdate.value);
+    if (list->type == TYPE_DICT) {
+        map_set(list, index_node, value);
+        return NULL;
+    }
+    if (list->type == TYPE_LIST) {
+        if (index_node->type != TYPE_INT) {
+            fprintf(stderr, "Error: List index is not a number\n");
+            exit(EXIT_FAILURE);
+        }
+        int index = *((int*)index_node->value);
+        if (index < 0 || index >= list->List.count) {
+            fprintf(stderr, "Error: List index out of bounds\n");
+            exit(EXIT_FAILURE);
+        }
+        list->List.elements[index] = value;
+        return NULL;
+    }
+    return NULL;
+}
+
+Literal* evaluate_list_delete(ASTNode* node) {
+    Literal* list = interpret(node->data.ASTListDelete.target->data.ASTListIndex.list);
+    Literal* index_node = interpret(node->data.ASTListDelete.target->data.ASTListIndex.index);
+    if (list->type == TYPE_DICT) {
+        map_remove(list, index_node);
+        return NULL;
+    }
+    if (list->type == TYPE_LIST) {
+        if (index_node->type != TYPE_INT) {
+            fprintf(stderr, "Error: List index is not a number\n");
+            exit(EXIT_FAILURE);
+        }
+        int index = *((int*)index_node->value);
+        if (index < 0 || index >= list->List.count) {
+            fprintf(stderr, "Error: List index out of bounds\n");
+            exit(EXIT_FAILURE);
+        }
+        for (int i = index; i < list->List.count - 1; i++) {
+            list->List.elements[i] = list->List.elements[i + 1];
+        }
+        list->List.count--;
+        list->List.elements = realloc(list->List.elements, list->List.count * sizeof(Literal*));
+        return NULL;
+    }}
 Literal* evaluate_while_loop(ASTNode* node) {
     // Literal* d = interpret(node->data.ASTWhileLoop.condition);
     // printf("%d",d->value )
@@ -862,6 +943,105 @@ void* evaluate_map(ASTNode* node) {
     return map;
 }
 
+Literal* evaluate_open_file(ASTNode* node) {
+    
+    Literal* fileloc = interpret( node->data.function_call.arguments[0]);
+    Literal* format = interpret( node->data.function_call.arguments[1]);
+        
+    FILE* file = fopen(*((char**)fileloc->value),*((char**)format->value));
+    if (!file) {
+        fprintf(stderr, "Error: Unable to open file %s\n", *((char**)format->value));
+        exit(EXIT_FAILURE);
+    }
+    Literal* file_data =  (Literal*)malloc(sizeof(Literal));
+    file_data->type = TYPE_FILE;
+    file_data->value = file;
+    return file_data;
+    
+}
+Literal* evaluate_file_close(ASTNode* node) {
+    Literal* file = interpret(node->data.function_call.arguments[0]);
+    FILE* file_ptr = (FILE*)file->value;
+    fclose(file_ptr);
+}
+Literal* evaluate_file_write(ASTNode* node) {
+    Literal* file = interpret(node->data.function_call.arguments[0]);
+    Literal* content = interpret(node->data.function_call.arguments[1]);
+    FILE* file_ptr = (FILE*)file->value;
+   
+    fprintf(file_ptr, "%s", *((char**)content->value));
+}
+Literal* evaluate_file_read(ASTNode* node) {
+    // printf("%d", interpret(node->data.function_call.arguments[0])->type== TYPE_FILE);
+    Literal* file = interpret(node->data.function_call.arguments[0]);
+    FILE* file_ptr = (FILE*)file->value;
+    fseek(file_ptr, 0, SEEK_END);
+    long file_size = ftell(file_ptr);
+    rewind(file_ptr);
+
+    void* value = NULL;
+    value = malloc(sizeof(char*));
+    char* buf = "";
+    char* content = malloc(file_size + 1);
+    fread(content, 1, file_size, file_ptr);
+    // content[file_size] = '\0';
+    *((char**)value) = concat(content,buf);
+    
+    // printf("File content: %s\n", content);
+    // *((char**)value) = content;
+    // printf("File content: %s\n",*( (char**)value));
+    Literal* file_data =  (Literal*)malloc(sizeof(Literal));
+    file_data->type = TYPE_STRING;
+    file_data->value = value;
+
+    return file_data;
+    // return file_data;
+}
+
+Literal* scan_statement(ASTNode* node) {
+    print_function( interpret(node->data.function_call.arguments[0]));
+    char* buffer = malloc(256);
+    fgets(buffer, 256, stdin);
+    void* value = malloc(sizeof(char*));
+    *((char**)value) = strdup(buffer);
+    
+    buffer[strcspn(buffer, "\n")] = '\0'; // Remove the newline character
+    Literal* file_data =  (Literal*)malloc(sizeof(Literal));
+    file_data->type = TYPE_STRING;
+    file_data->value = value;
+    return file_data;
+    // return strdup(buffer);
+}
+Literal* evaluate_import(ASTNode* node) {
+    char* filename = *((char**)interpret(node->data.function_call.arguments[0])->value);
+    char* file_path = malloc(strlen(filename) + 1);
+    strcpy(file_path, filename);
+    char* file_extension = strrchr(file_path, '.');
+    if (file_extension != NULL && strcmp(file_extension, ".uma") == 0) {
+        // The file has a .mel extension, so we can interpret it
+        // printf("%s",file_path);
+        // Interpret the file
+        char* content = read_file(file_path);
+        if (content == NULL) {
+            return NULL;
+
+        }
+        Token* tokens = tokenize(content);
+        if (tokens == NULL) {
+            return NULL;
+        }
+        Token* token_ptr = tokens;
+        ASTNode* ast = parse_program(&token_ptr);
+        interpret(ast);
+
+        // printf("%s",code);
+    } 
+        // The file does
+    // printf("%s",filename);
+
+    
+    
+}
 
 
 Literal* interpret(ASTNode* node) {
@@ -908,6 +1088,9 @@ Literal* interpret(ASTNode* node) {
             return value;
             // return NULL;
         }
+        case AST_SCAN:
+            // printf("Scan\n");
+            return scan_statement(node);
         
             
         case AST_DICTIONARY:
@@ -950,10 +1133,26 @@ Literal* interpret(ASTNode* node) {
         case AST_LIST_INDEX:
             
             return evaluate_list_index(node);
+
+        case AST_LIST_UPDATE:
+            return evaluate_list_update(node);
+        case AST_LIST_DELETE:
+            return evaluate_list_delete(node);
         case AST_WHILE_LOOP:
             return evaluate_while_loop(node);
         case AST_FOR_LOOP:
             return evaluate_for_loop(node);
+        case AST_OPEN_FILE:
+            return evaluate_open_file(node);
+        case AST_CLOSE_FILE:
+            return evaluate_file_close(node);
+        case AST_READ_FILE:
+            return evaluate_file_read(node);
+        case AST_WRITE_FILE:
+            return evaluate_file_write(node);
+        case AST_IMPORT:
+            return evaluate_import(node);
+        
         case AST_STATEMENT_LIST:
             // printf("Statement List\n");
             // printf(">>>>>>>>%d\n",node->data.statement_list.statement_count);

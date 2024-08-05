@@ -33,15 +33,14 @@ typedef enum {
     LESS_EQUAL,
     LOGICAL_AND,
     LOGICAL_OR,
-    LOGICAL_NOT,
-    
+    LOGICAL_NOT,    
     BITWISE_AND,       // &
     BITWISE_OR,        // |
     BITWISE_XOR,       // ^
     BITWISE_NOT, 
     SHIFT_LEFT,        // <<
     SHIFT_RIGHT,
-    
+    DELETE,
     IDENTIFIER,
     PLUS_ASSIGN,       // +=
     MINUS_ASSIGN,      // -=
@@ -72,10 +71,14 @@ typedef enum {
     IMPORT,
     FROM,
     NEW,
-  
+    SCAN,
     DOT,
     QUESTION_MARK,
     ARROW,
+    FWRITE,
+    FREAD,
+    FOPEN,
+    FCLOSE,
 } TokenType;
 
 // Token structure
