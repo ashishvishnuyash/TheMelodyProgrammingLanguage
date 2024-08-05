@@ -1,2 +1,0 @@
-import("mdltest.uma");
-print(add(1,2));
