@@ -1,4 +1,4 @@
-# Custom Programming Language Documentation
+# .Uma Programming Language Documentation
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@
 
 ## Introduction
 
-This document provides an overview of the custom programming language, detailing its features, syntax, and usage. The language is designed to support a variety of data types, operations, control structures, and I/O functionalities.
+This document provides an overview of the .Uma programming language, detailing its features, syntax, and usage. The language is designed to support a variety of data types, operations, control structures, and I/O functionalities.
 
 ## Language Features
 
@@ -38,7 +38,7 @@ This document provides an overview of the custom programming language, detailing
 
 - **Numeric Types**: `int`, `float`
 - **String**: `str`
-- **Boolean**: `bool`
+
 - **Collection Types**: `list`, `dict`
 
 ### Variables
@@ -266,4 +266,4 @@ To extend the language, follow these steps:
     }
     ```
 
-This documentation provides an overview of the custom programming language and serves as a guide for using and extending it.
+This documentation provides an overview of the .Uma programming language and serves as a guide for using and extending it.
