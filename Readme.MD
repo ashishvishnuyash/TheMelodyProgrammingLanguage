@@ -110,7 +110,7 @@ This document provides an overview of the .Uma programming language, detailing i
 
 - **For Loop**:
     ```c
-    for (int i = 0; i < 10; i += 1) {
+    for (i = 0; i < 10; i += 1) {
         print(i);
     }
     ```
@@ -119,7 +119,7 @@ This document provides an overview of the .Uma programming language, detailing i
 
 - **Definition**:
     ```python
-    sum=(int a, int b) {
+    sum=( a, b) {
         return a + b;
     }
     ```
