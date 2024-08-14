@@ -1,4 +1,4 @@
-# .Uma Programming Language Documentation
+# .mdy Programming Language Documentation
 
 ## Table of Contents
 
