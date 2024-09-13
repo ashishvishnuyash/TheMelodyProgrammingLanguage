@@ -140,7 +140,7 @@ This document provides an overview of the .Uma programming language, detailing i
 - **Read and Write**:
     ```python
     write(file, "Hello, world!");
-    str content = read(file);
+    content = read(file);
     ```
 
 ### Input and Output
@@ -152,7 +152,7 @@ This document provides an overview of the .Uma programming language, detailing i
 
 - **Input**:
     ```c
-    str name = scan("Enter your name: ");
+    name = scan("Enter your name: ");
     ```
 
 
