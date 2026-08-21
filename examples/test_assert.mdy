@@ -1,0 +1,12 @@
+print("=== Assert Tests ===")
+
+# Passing assertions
+assert(true)
+assert(1 == 1)
+assert("hello".contains("ell"))
+assert(len([1, 2, 3]) == 3)
+
+# Assertion with message
+assert(2 + 2 == 4, "basic math works")
+
+print("All assertions passed!")

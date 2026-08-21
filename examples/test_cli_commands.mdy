@@ -1,0 +1,19 @@
+cli = import("cli")
+
+fn do_greet() {
+    cli.option("--name", "Who to greet", "World")
+    opts = cli.parse()
+    print("Hello, " + str(opts["name"]) + "!")
+}
+
+fn do_add() {
+    cli.option("--a", "First number", 0)
+    cli.option("--b", "Second number", 0)
+    opts = cli.parse()
+    print(str(opts["a"]) + " + " + str(opts["b"]) + " = " + str(opts["a"] + opts["b"]))
+}
+
+cli.command("greet", "Say hello", do_greet)
+cli.command("add", "Add two numbers", do_add)
+
+cli.run()

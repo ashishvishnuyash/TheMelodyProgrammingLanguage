@@ -1,0 +1,127 @@
+# Melody Language Feature Showcase
+
+# === Data Types ===
+print("--- Data Types ---");
+a = 42;
+b = 3.14;
+c = "hello";
+d = true;
+e = null;
+print("int:", a, "| float:", b, "| string:", c, "| bool:", d, "| null:", e);
+print("Types:", type(a), type(b), type(c), type(d), type(e));
+
+# === Lists ===
+print("\n--- Lists ---");
+nums = [1, 2, 3, 4, 5];
+print("nums:", nums);
+nums.append(6);
+print("After append(6):", nums);
+popped = nums.pop();
+print("Popped:", popped, "| List:", nums);
+print("nums[0]:", nums[0], "| nums[-1]:", nums[-1]);
+print("Length:", len(nums));
+
+# === Dictionaries ===
+print("\n--- Dicts ---");
+person = {"name": "Alice", "age": 30, "city": "Paris"};
+print("person:", person);
+print("Name:", person["name"]);
+person["email"] = "alice@example.com";
+print("After adding email:", person);
+print("Keys:", person.keys());
+print("Values:", person.values());
+
+# === String Methods ===
+print("\n--- String Methods ---");
+text = "  Hello, World!  ";
+print("Original: '" + text + "'");
+print("strip():  '" + text.strip() + "'");
+print("upper():  '" + text.strip().upper() + "'");
+print("lower():  '" + text.strip().lower() + "'");
+words = "apple,banana,cherry".split(",");
+print("split(','):", words);
+print("find('World'):", "Hello, World!".find("World"));
+print("replace:", "Hello World".replace("World", "Melody"));
+
+# === Control Flow ===
+print("\n--- Control Flow ---");
+
+# For-in loop
+print("For-in loop:");
+fruits = ["apple", "banana", "cherry"];
+for (fruit in fruits) {
+    print("  -", fruit);
+}
+
+# While with break
+print("While with break:");
+i = 0;
+while (true) {
+    if (i >= 5) {
+        break;
+    }
+    print("  i =", i);
+    i += 1;
+}
+
+# For with continue
+print("Even numbers (for + continue):");
+for (i = 0; i < 10; i += 1) {
+    if (i % 2 != 0) {
+        continue;
+    }
+    print("  ", i);
+}
+
+# === Functions ===
+print("\n--- Functions ---");
+
+# Assignment syntax
+greet = (name) {
+    return "Hello, " + name + "!";
+};
+print(greet("World"));
+
+# fn syntax
+fn factorial(n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+print("5! =", factorial(5));
+
+# Closures
+fn make_counter() {
+    count = 0;
+    increment = () {
+        count += 1;
+        return count;
+    };
+    return increment;
+}
+counter = make_counter();
+print("Counter:", counter(), counter(), counter());
+
+# === Built-in Functions ===
+print("\n--- Built-ins ---");
+print("abs(-5):", abs(-5));
+print("min(3, 7):", min(3, 7));
+print("max(3, 7):", max(3, 7));
+print("round(3.7):", round(3.7));
+print("range(5):", range(5));
+print("range(2,8):", range(2, 8));
+print("range(0,10,3):", range(0, 10, 3));
+
+# Type conversions
+print("int('42'):", int("42"));
+print("float(42):", float(42));
+print("str(42):", str(42));
+print("bool(0):", bool(0));
+print("bool(1):", bool(1));
+
+# String repetition
+print("'ab' * 3:", "ab" * 3);
+
+# List join
+print("[1,2,3].join('-'):", [1,2,3].join("-"));

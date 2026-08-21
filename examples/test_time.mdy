@@ -1,0 +1,29 @@
+time = import("time")
+
+print("=== Time Module ===")
+
+# Current timestamp
+now = time.now()
+print("Unix timestamp: " + str(now))
+
+# Milliseconds
+ms = time.millis()
+print("Milliseconds: " + str(ms))
+
+# Format time
+formatted = time.format(now, "%Y-%m-%d %H:%M:%S")
+print("Formatted: " + formatted)
+
+# High-res clock for benchmarking
+start = time.clock()
+x = 0
+for (i = 0; i < 100000; i += 1) {
+    x = x + i
+}
+elapsed = time.clock() - start
+print("Benchmark: 100k additions in " + str(elapsed) + " seconds")
+
+# Sleep
+print("Sleeping 0.5s...")
+time.sleep(0.5)
+print("Done!")

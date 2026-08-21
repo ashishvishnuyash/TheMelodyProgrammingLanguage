@@ -1,0 +1,13 @@
+crypto = import("crypto")
+print("=== Crypto Module ===")
+
+print("md5 hello: " + crypto.md5("hello"))
+print("md5 empty: " + crypto.md5(""))
+print("sha256 hello: " + crypto.sha256("hello"))
+hash = crypto.sha512("hello")
+print("sha512 hello (first 16): " + hash.substring(0, 16))
+print("hmac: " + crypto.hmac_sha256("key", "message"))
+encoded = crypto.base64_encode("Hello, World!")
+print("base64 encode: " + encoded)
+print("base64 decode: " + crypto.base64_decode(encoded))
+print("round-trip: " + crypto.base64_decode(crypto.base64_encode("test 123")))

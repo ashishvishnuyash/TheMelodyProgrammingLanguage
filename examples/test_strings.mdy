@@ -1,0 +1,38 @@
+# Test new string methods
+print("=== String Method Tests ===")
+
+# startswith / endswith
+print("startswith: " + str("Hello".startswith("He")))
+print("endswith: " + str("Hello".endswith("lo")))
+print("startswith false: " + str("Hello".startswith("lo")))
+
+# contains
+print("contains: " + str("Hello World".contains("World")))
+print("contains false: " + str("Hello".contains("xyz")))
+
+# count
+print("count: " + str("banana".count("an")))
+print("count single: " + str("hello".count("l")))
+
+# substring
+print("substring: " + "Hello".substring(1, 4))
+print("substring to end: " + "Hello".substring(2))
+
+# trim_left / trim_right
+print("trim_left: [" + "  hi  ".trim_left() + "]")
+print("trim_right: [" + "  hi  ".trim_right() + "]")
+
+# pad_left / pad_right
+print("pad_left: " + "42".pad_left(5, "0"))
+print("pad_right: " + "hi".pad_right(10, "."))
+print("pad_left default: [" + "hi".pad_left(5) + "]")
+
+# join
+print("join: " + ", ".join(["a", "b", "c"]))
+print("join empty: " + "-".join([]))
+
+# format
+print("format: " + "Hello, {}!".format("World"))
+print("format multi: " + "{} + {} = {}".format(1, 2, 3))
+print("format extra args: " + "Hi {}".format("there", "extra"))
+print("format unmatched: " + "Hi {} and {}".format("one"))

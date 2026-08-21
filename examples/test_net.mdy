@@ -1,0 +1,14 @@
+net = import("net")
+
+print("Connecting to example.com:80...")
+sock = net.connect("example.com", 80)
+print("Connected!")
+
+net.send(sock, "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n")
+print("Request sent, waiting for response...")
+
+response = net.recv(sock, 8192)
+print(response)
+
+net.close(sock)
+print("Connection closed.")

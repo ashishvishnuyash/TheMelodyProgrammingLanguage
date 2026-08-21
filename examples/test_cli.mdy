@@ -1,0 +1,18 @@
+cli = import("cli")
+
+print("=== CLI Module ===")
+
+# Show raw args
+print("Raw args: " + str(cli.args()))
+
+# Register options
+cli.option("--name", "Your name", "World")
+cli.option("--port", "Port number", 8080)
+cli.flag("--verbose", "Enable verbose mode")
+
+# Parse
+opts = cli.parse()
+print("Parsed options: " + str(opts))
+print("Name: " + str(opts["name"]))
+print("Port: " + str(opts["port"]))
+print("Verbose: " + str(opts["verbose"]))

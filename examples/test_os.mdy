@@ -1,0 +1,29 @@
+os = import("os")
+
+print("=== OS Module ===")
+print("Platform: " + os.platform())
+print("CWD: " + os.cwd())
+
+# Environment variables
+home = os.env("USERNAME")
+print("USERNAME: " + str(home))
+
+# Set and get env var
+os.setenv("MELODY_TEST", "hello_from_melody")
+print("MELODY_TEST: " + str(os.env("MELODY_TEST")))
+
+# List directory
+print("\nFiles in examples/:")
+files = os.listdir("examples")
+for (item in files) {
+    print("  " + item)
+}
+
+# Execute a command
+print("\nRunning 'echo Hello from shell':")
+code = os.exec("echo Hello from shell")
+print("Exit code: " + str(code))
+
+# Capture command output
+output = os.capture("echo Captured output")
+print("Captured: " + output)

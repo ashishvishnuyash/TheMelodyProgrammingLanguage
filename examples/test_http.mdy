@@ -1,0 +1,16 @@
+http = import("http")
+
+print("=== HTTP Module ===")
+
+# Simple GET request
+print("GET http://example.com ...")
+res = http.get("http://example.com")
+print("Status: " + str(res["status"]))
+print("Body length: " + str(len(res["body"])))
+print("Content-Type: " + str(res["headers"]["Content-Type"]))
+print("")
+
+# Show first 200 chars of body
+body = res["body"]
+print("Body preview:")
+print(body)

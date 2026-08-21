@@ -1,0 +1,32 @@
+sqlite = import("sqlite")
+
+print("=== SQLite Module ===")
+
+# Open in-memory database
+db = sqlite.open(":memory:")
+print("Opened in-memory database")
+
+# Create table
+sqlite.exec(db, "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)")
+print("Created users table")
+
+# Insert data
+sqlite.exec(db, "INSERT INTO users (name, age) VALUES ('Alice', 30)")
+sqlite.exec(db, "INSERT INTO users (name, age) VALUES ('Bob', 25)")
+sqlite.exec(db, "INSERT INTO users (name, age) VALUES ('Charlie', 35)")
+print("Inserted 3 users")
+
+# Query all
+rows = sqlite.query(db, "SELECT * FROM users ORDER BY age")
+print("Query results:")
+for (row in rows) {
+    print("  " + str(row["name"]) + " (age " + str(row["age"]) + ")")
+}
+
+# Query with filter
+young = sqlite.query(db, "SELECT name FROM users WHERE age < 30")
+print("Users under 30: " + str(young))
+
+# Close
+sqlite.close(db)
+print("Database closed")

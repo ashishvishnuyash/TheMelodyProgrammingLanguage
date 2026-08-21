@@ -1,0 +1,22 @@
+regex = import("regex")
+print("=== Regex Module ===")
+
+# match
+print("match digits: " + str(regex.match("[0-9]+", "12345")))
+print("match fail: " + str(regex.match("[0-9]+", "abc")))
+print("match word: " + str(regex.match("\\w+", "hello")))
+
+# search
+result = regex.search("[0-9]+", "abc123def")
+print("search: " + str(result))
+
+# findall
+matches = regex.findall("[0-9]+", "a1b22c333")
+print("findall: " + str(matches))
+
+# replace
+print("replace: " + regex.replace("[0-9]+", "abc123def456", "NUM"))
+
+# split
+parts = regex.split("[,;]+", "a,b;;c,d")
+print("split: " + str(parts))

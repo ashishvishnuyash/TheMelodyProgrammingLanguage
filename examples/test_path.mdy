@@ -1,0 +1,30 @@
+path = import("path")
+
+print("=== Path Module ===")
+
+# Join paths
+joined = path.join("src", "runtime", "interpreter.c")
+print("join: " + joined)
+
+# Basename
+print("basename('/home/user/file.txt'): " + path.basename("/home/user/file.txt"))
+
+# Dirname
+print("dirname('/home/user/file.txt'): " + path.dirname("/home/user/file.txt"))
+
+# Extension
+print("ext('main.c'): " + path.ext("main.c"))
+print("ext('archive.tar.gz'): " + path.ext("archive.tar.gz"))
+print("ext('no_ext'): " + path.ext("no_ext"))
+
+# Exists
+print("exists('src/main.c'): " + str(path.exists("src/main.c")))
+print("exists('nonexistent'): " + str(path.exists("nonexistent")))
+
+# Is file / is dir
+print("isfile('src/main.c'): " + str(path.isfile("src/main.c")))
+print("isdir('src'): " + str(path.isdir("src")))
+print("isdir('src/main.c'): " + str(path.isdir("src/main.c")))
+
+# Absolute path
+print("abs('.'): " + path.abs("."))

@@ -1,0 +1,33 @@
+# Fibonacci sequence using recursion and iteration
+
+# Recursive version
+fib_recursive = (n) {
+    if (n <= 1) {
+        return n;
+    }
+    return fib_recursive(n - 1) + fib_recursive(n - 2);
+};
+
+# Iterative version
+fn fib_iterative(n) {
+    if (n <= 1) {
+        return n;
+    }
+    a = 0;
+    b = 1;
+    for (i = 2; i <= n; i += 1) {
+        temp = b;
+        b = a + b;
+        a = temp;
+    }
+    return b;
+}
+
+# Print first 20 Fibonacci numbers
+print("Fibonacci sequence (iterative):");
+for (i in range(20)) {
+    print("  fib(" + str(i) + ") =", fib_iterative(i));
+}
+
+# Test recursive version (smaller range - it's slower)
+print("\nRecursive check: fib(10) =", fib_recursive(10));

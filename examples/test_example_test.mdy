@@ -1,0 +1,20 @@
+# Example test file for melody test
+fn test_math() {
+    assert(1 + 1 == 2)
+    assert(10 - 3 == 7)
+    assert(2 * 5 == 10)
+}
+
+fn test_strings() {
+    assert("hello".upper() == "HELLO")
+    assert("WORLD".lower() == "world")
+    assert("hello world".contains("world"))
+    assert("banana".count("an") == 2)
+}
+
+fn test_list() {
+    items = [1, 2, 3]
+    assert(len(items) == 3)
+    append(items, 4)
+    assert(len(items) == 4)
+}

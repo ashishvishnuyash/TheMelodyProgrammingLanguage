@@ -1,0 +1,15 @@
+# Hello World in Melody
+print("Hello, World!");
+
+# Variables
+name = "Melody";
+version = 1;
+print("Welcome to " + name + " v" + str(version));
+
+# Math
+x = 10;
+y = 3.14;
+print("x =", x, "y =", y);
+print("x + y =", x + y);
+print("x ** 2 =", x ** 2);
+print("x // 3 =", x // 3);
